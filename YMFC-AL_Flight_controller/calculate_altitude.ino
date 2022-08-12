@@ -1,0 +1,14 @@
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Subroutine for calculating drone height based on the pressure read from the barometer
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float calculate_altitude(float seaLevelhPa) {
+  float altitude;
+
+  //Convert the units from pascals to hectopascals
+  float pressure = actual_pressure/100;
+
+  //Calculate the altitude based on the pressure at sea level
+  altitude = 44330 * (1.0 - pow(pressure / seaLevelhPa, 0.1903));
+
+  return altitude;
+}
