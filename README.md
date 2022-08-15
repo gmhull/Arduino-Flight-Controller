@@ -8,4 +8,4 @@ flying.  YMFC-AL_Flight_controller holds the flight controller code for the buil
 
 A wiring diagram is on its way.
 
-![Drone Outside](./drone.jpg?raw=true "Drone")
+![Drone Outside](./Drone.jpg?raw=true "Drone")
