@@ -8,4 +8,4 @@ flying.  Drone_Flight_Controller holds the flight controller code for the build.
 
 A wiring diagram is on its way.
 
-![Alt text](./drone.jpg?raw=true "Drone")
+![Drone Outside](./Drone.jpg?raw=true "Drone")
