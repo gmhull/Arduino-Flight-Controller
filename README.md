@@ -17,7 +17,6 @@ Parts for this project included:
 - LED Light
 - Wires/Resistors/Capacitor
 - LiPo Battery, 3 cell 2200mAh
--
 
 Here is a wiring diagram of the build:
 
