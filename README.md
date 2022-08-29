@@ -17,11 +17,10 @@ Parts for this project included:
 - LED Light
 - Wires/Resistors/Capacitor
 - LiPo Battery, 3 cell 2200mAh
--
 
 Here is a wiring diagram of the build:
 
-![Wiring Schematic](./Wiring Schematic.png?raw=true "Wiring Schematic")
+![Wiring Schematic](./Wiring%20Schematic.png?raw=true "Wiring Schematic")
 
 To set up the drone, first run the Drone_Setup file to save settings on the Arduino
 with eeprom.  Drone_ESC_Calibrate can be used to test out the quadcopter before
