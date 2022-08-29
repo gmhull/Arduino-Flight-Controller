@@ -19,7 +19,7 @@ void get_barometer_data(void) {
       raw_temperature_reading[1] = Wire.read();
       raw_temperature_reading[2] = Wire.read();
       raw_temperature_reading[3] = Wire.read();
-      
+
     } else {
       //Read the pressure data that was requested
       Wire.beginTransmission(bmp_address);                                    //Start conection to the barometer
@@ -32,20 +32,20 @@ void get_barometer_data(void) {
       raw_pressure_reading[3] = Wire.read();
     }
   }
-    
-  if (bar_count == 2) {  
+
+  if (bar_count == 2) {
     temp_count ++;
     if (temp_count == 20) {
       temp_count = 0; //Reset the temp counter back to 0
       //Request the temperature data
-      
-      //In forced mode we need to send a command every time we want to take a measurement.  
+
+      //In forced mode we need to send a command every time we want to take a measurement.
       Wire.beginTransmission(bmp_address);          //Start conection to the barometer
       Wire.write(0xF4);                             //Write to the ctrl_meas register
       Wire.write(0x22);                             //Send register bits 00100010 (1 temp measurement, no pressure measurement, forced mode)
       Wire.endTransmission();                       //End the transmission to the barometer
 
-      //Calculate the average temp here to save time.  bar_count = 1 has the slowest cycle.      
+      //Calculate the average temp here to save time.  bar_count = 1 has the slowest cycle.
       //Store the temperature in a rolling average to prevent spikes
       raw_average_temperature_total -= raw_temperature_rotating_memory[average_temperature_mem_location];
       raw_temperature_rotating_memory[average_temperature_mem_location] = raw_temperature_reading[1] << 12 | raw_temperature_reading[2] << 4 | raw_temperature_reading[3] >> 4;
@@ -56,13 +56,13 @@ void get_barometer_data(void) {
     } else {
       //Request the pressure data
 
-      //In forced mode we need to send a command every time we want to take a measurement.  
+      //In forced mode we need to send a command every time we want to take a measurement.
       Wire.beginTransmission(bmp_address);          //Start conection to the barometer
       Wire.write(0xF4);                             //Write to the ctrl_meas register
       Wire.write(0x06);                             //Send register bits 00000110 (no temp measurement, 1 pressure measurement, forced mode)
       Wire.endTransmission();                       //End the transmission to the barometer
 
-      //Calculate the average temp here to save time.  bar_count = 1 has the slowest cycle.  
+      //Calculate the average temp here to save time.  bar_count = 1 has the slowest cycle.
       raw_pressure = raw_pressure_reading[1] << 12 | raw_pressure_reading[2] << 4 | raw_pressure_reading[3] >> 4;   //Shift the bytes into the correct positions to read
     }
   }
@@ -74,7 +74,7 @@ void get_barometer_data(void) {
     float T = bmp.calculateTemperature(raw_temperature);    //Get the temperature and update the t_fine variable to calculate pressure
 //    Serial.println(T);
     float P = bmp.calculatePressure(raw_pressure);          //Get the temperature in pascals
-    
+
     //To get a smoother pressure value we will use a 20 location rotating memory.
     pressure_total_avarage -= pressure_rotating_mem[pressure_rotating_mem_location];                          //Subtract the current memory position to make room for the new value.
     pressure_rotating_mem[pressure_rotating_mem_location] = P;                                                //Calculate the new change between the actual pressure and the previous measurement.
@@ -111,32 +111,32 @@ void get_barometer_data(void) {
     //Check the status register of the chip to see whether the measurements are ready to be taken
     if (flight_status >= 2 && current_height > 2){
       // If we are at least 2m off the ground and the sticks are level;
-      if (pid_altitude_setpoint == 0)pid_altitude_setpoint = actual_pressure;        //If not yet set, set the PID altitude setpoint.
+      if (pid_altitude_setpoint == 0)pid_altitude_setpoint = actual_pressure;   //If not yet set, set the PID altitude setpoint.
       //When the throttle stick position is increased or decreased the altitude hold function is partially disabled. The manual_altitude_change variable
       //will indicate if the altitude of the quadcopter is changed by the pilot.
-      manual_altitude_change = 0;                                                    //Preset the manual_altitude_change variable to 0.
-      if (receiver_input_channel_3 > 1600) {                                         //If the throtttle is increased above 1600us (60%).
-        manual_altitude_change = 1;                                                  //Set the manual_altitude_change variable to 1 to indicate that the altitude is adjusted.
-        pid_altitude_setpoint = actual_pressure;                                     //Adjust the setpoint to the actual pressure value so the output of the P- and I-controller are 0.
-//        manual_throttle = (receiver_input_channel_3 - 1600) / 3;                   //To prevent very fast changes in height limit the function of the throttle.
+      manual_altitude_change = 0;                                               //Preset the manual_altitude_change variable to 0.
+      if (receiver_input_channel_3 > 1600) {                                    //If the throtttle is increased above 1600us (60%).
+        manual_altitude_change = 1;                                             //Set the manual_altitude_change variable to 1 to indicate that the altitude is adjusted.
+        pid_altitude_setpoint = actual_pressure;                                //Adjust the setpoint to the actual pressure value so the output of the P- and I-controller are 0.
+//        manual_throttle = (receiver_input_channel_3 - 1600) / 3;              //To prevent very fast changes in height limit the function of the throttle.
       }
-      if (receiver_input_channel_3 < 1400) {                                         //If the throtttle is lowered below 1400us (40%).
-        manual_altitude_change = 1;                                                  //Set the manual_altitude_change variable to 1 to indicate that the altitude is adjusted.
-        pid_altitude_setpoint = actual_pressure;                                     //Adjust the setpoint to the actual pressure value so the output of the P- and I-controller are 0.
-//        manual_throttle = (receiver_input_channel_3 - 1400) / 5;                   //To prevent very fast changes in height limit the function of the throttle.
+      if (receiver_input_channel_3 < 1400) {                                    //If the throtttle is lowered below 1400us (40%).
+        manual_altitude_change = 1;                                             //Set the manual_altitude_change variable to 1 to indicate that the altitude is adjusted.
+        pid_altitude_setpoint = actual_pressure;                                //Adjust the setpoint to the actual pressure value so the output of the P- and I-controller are 0.
+//        manual_throttle = (receiver_input_channel_3 - 1400) / 5;              //To prevent very fast changes in height limit the function of the throttle.
       }
-      
-      pid_altitude_input = actual_pressure;                                          //Set the setpoint (pid_altitude_input) of the PID-controller.
-      pid_error_temp_altitude = pid_altitude_input - pid_altitude_setpoint;          //Calculate the difference of actual altitude and desired altitude
-  
+
+      pid_altitude_input = actual_pressure;                                     //Set the setpoint (pid_altitude_input) of the PID-controller.
+      pid_error_temp_altitude = pid_altitude_input - pid_altitude_setpoint;     //Calculate the difference of actual altitude and desired altitude
+
       //To get better results the P-gain is increased when the error between the setpoint and the actual pressure value increases.
       //The variable pid_error_gain_altitude will be used to adjust the P-gain of the PID-controller.
-      pid_error_gain_altitude = 0;                                               //Set pid_error_gain_altitude to 0
-      if (pid_error_temp_altitude > 10 || pid_error_temp_altitude < -10) {       //Check for a difference in altitude greater than 10
-        pid_error_gain_altitude = (abs(pid_error_temp) - 10) / 20.0;             //Calculate the pid_error_gain_altitude value
-        if (pid_error_gain_altitude > 3)pid_error_gain_altitude = 3;             //Set a limit to the p-gains at 3
+      pid_error_gain_altitude = 0;                                              //Set pid_error_gain_altitude to 0
+      if (pid_error_temp_altitude > 10 || pid_error_temp_altitude < -10) {      //Check for a difference in altitude greater than 10
+        pid_error_gain_altitude = (abs(pid_error_temp) - 10) / 20.0;            //Calculate the pid_error_gain_altitude value
+        if (pid_error_gain_altitude > 3)pid_error_gain_altitude = 3;            //Set a limit to the p-gains at 3
       }
-  
+
       //Calculate the I-output of the PID controller
       pid_i_mem_altitude += (pid_i_gain_altitude / 100.0) * pid_error_temp_altitude;
       if (pid_i_mem_altitude > pid_max_altitude)pid_i_mem_altitude = pid_max_altitude;
@@ -150,13 +150,13 @@ void get_barometer_data(void) {
       if (pid_output_altitude > pid_max_altitude)pid_output_altitude = pid_max_altitude;
       else if (pid_output_altitude < pid_max_altitude * -1)pid_output_altitude = pid_max_altitude * -1;
     }
-  
+
     //We will need to reset some vaiables to 0 when not in auto hold mode
-    else if (flight_status == 2 && pid_altitude_setpoint != 0) {                       //If the altitude hold mode is not set and the PID altitude setpoint is still set.
-        pid_altitude_setpoint = 0;                                                     //Reset the PID altitude setpoint.
-        pid_output_altitude = 0;                                                       //Reset the output of the PID controller.
-        pid_i_mem_altitude = 0;                                                        //Reset the I-controller.
-        manual_altitude_change = 1;                                                    //Set the manual_altitude_change to 1.
+    else if (flight_status == 2 && pid_altitude_setpoint != 0) {                //If the altitude hold mode is not set and the PID altitude setpoint is still set.
+        pid_altitude_setpoint = 0;                                              //Reset the PID altitude setpoint.
+        pid_output_altitude = 0;                                                //Reset the output of the PID controller.
+        pid_i_mem_altitude = 0;                                                 //Reset the I-controller.
+        manual_altitude_change = 1;                                             //Set the manual_altitude_change to 1.
     }
 
   //Lets calculate the current height in this loop where there is extra time.
