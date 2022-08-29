@@ -11,7 +11,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////
 //Safety note
 ///////////////////////////////////////////////////////////////////////////////////////
-//Always remove the propellers and stay away from the motors unless you 
+//Always remove the propellers and stay away from the motors unless you
 //are 100% certain of what you are doing.
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -51,6 +51,7 @@ byte eeprom_data[36];
 volatile int receiver_input_channel_1, receiver_input_channel_2, receiver_input_channel_3, receiver_input_channel_4;
 int counter_channel_1, counter_channel_2, counter_channel_3, counter_channel_4, loop_counter;
 int esc_1, esc_2, esc_3, esc_4;
+int last_esc_1, last_esc_2, last_esc_3, last_esc_4;
 int throttle, battery_voltage;
 int cal_int, start, flight_status, gyro_address, bmp_address;
 int receiver_input[5];
@@ -121,14 +122,14 @@ void setup(){
   while(eeprom_data[33] != 'G' || eeprom_data[34] != 'H' || eeprom_data[35] != 'M')delay(10);
 
   //The flight controller needs the MPU-6050 with gyro and accelerometer
-  //If setup is completed without MPU-6050 stop the flight controller program  
+  //If setup is completed without MPU-6050 stop the flight controller program
   if(eeprom_data[31] == 2 || eeprom_data[31] == 3)delay(10);
 
   //Use the Adafruit BMP library to initialize the BMP280 chip
   calibrate_barometer();
 
   //Wait 5 seconds before continuing.
-  for (cal_int = 0; cal_int < 1250 ; cal_int ++){                           
+  for (cal_int = 0; cal_int < 1250 ; cal_int ++){
     PORTB |= B00001111;                                                     //Set digital poort 8, 9, 10 and 11 high.
     delayMicroseconds(1000);                                                //Wait 1000us.
     PORTB &= B11110000;                                                     //Set digital poort 8, 9, 10 and 11 low.
@@ -164,7 +165,7 @@ void setup(){
       start = 0;                                                            //Start again at 0.
     }
   }
-  
+
   flight_status = 0;                                                        //Set the current flight status to 0 to prevent motors from starting
 
   //Load the battery voltage to the battery_voltage variable.
@@ -208,17 +209,17 @@ void loop(){
 
   //Accelerometer angle calculations
   acc_total_vector = sqrt((acc_x*acc_x)+(acc_y*acc_y)+(acc_z*acc_z));       //Calculate the total accelerometer vector.
-  
+
   if(abs(acc_y) < acc_total_vector){                                        //Prevent the asin function to produce a NaN
     angle_pitch_acc = asin((float)acc_y/acc_total_vector)* 57.296;          //Calculate the pitch angle.
   }
   if(abs(acc_x) < acc_total_vector){                                        //Prevent the asin function to produce a NaN
     angle_roll_acc = asin((float)acc_x/acc_total_vector)* -57.296;          //Calculate the roll angle.
   }
-  
+
   angle_pitch_acc -= angle_pitch_acc_cal;                                   //Accelerometer calibration value for pitch.
   angle_roll_acc -= angle_roll_acc_cal;                                     //Accelerometer calibration value for roll.
-  
+
   angle_pitch = angle_pitch * 0.9996 + angle_pitch_acc * 0.0004;            //Correct the drift of the gyro pitch angle with the accelerometer pitch angle.
   angle_roll = angle_roll * 0.9996 + angle_roll_acc * 0.0004;               //Correct the drift of the gyro roll angle with the accelerometer roll angle.
 
@@ -246,15 +247,15 @@ void loop(){
   //Start and stop auto altitude depending on the height and stick placement
   if(flight_status == 2 && receiver_input_channel_3 > 1400 && receiver_input_channel_3 < 1600 && current_height > 2){
     flight_status = 3;
-    pid_altitude_setpoint = current_height;                                        //Adjust the setpoint to the actual pressure value so the output of the P- and I-controller are 0.                             
-  } 
+    pid_altitude_setpoint = current_height;                                        //Adjust the setpoint to the actual pressure value so the output of the P- and I-controller are 0.
+  }
   else if(flight_status == 3 && (receiver_input_channel_3 < 1400 || receiver_input_channel_3 > 1600 || current_height < 2)) {
     flight_status = 2;
     pid_altitude_setpoint = 0;                                                     //Reset the PID altitude setpoint.
     pid_output_altitude = 0;                                                       //Reset the output of the PID controller.
-    pid_i_mem_altitude = 0;                                                        //Reset the I-controller.                                                  
+    pid_i_mem_altitude = 0;                                                        //Reset the I-controller.
   }
-  
+
   //Stopping the motors: throttle low and yaw right.
   if(flight_status >= 2 && receiver_input_channel_3 < 1050 && receiver_input_channel_4 > 1950)flight_status = 0;
 
@@ -316,7 +317,7 @@ void loop(){
       esc_2 += esc_2 * ((1240 - battery_voltage)/(float)3500);              //Compensate the esc-2 pulse for voltage drop.
       esc_3 += esc_3 * ((1240 - battery_voltage)/(float)3500);              //Compensate the esc-3 pulse for voltage drop.
       esc_4 += esc_4 * ((1240 - battery_voltage)/(float)3500);              //Compensate the esc-4 pulse for voltage drop.
-    } 
+    }
 
     if (esc_1 < 1100) esc_1 = 1100;                                         //Keep the motors running.
     if (esc_2 < 1100) esc_2 = 1100;                                         //Keep the motors running.
@@ -326,7 +327,7 @@ void loop(){
     if(esc_1 > 1950)esc_1 = 1950;                                           //Limit the esc-1 pulse to 1950us.
     if(esc_2 > 1950)esc_2 = 1950;                                           //Limit the esc-2 pulse to 1950us.
     if(esc_3 > 1950)esc_3 = 1950;                                           //Limit the esc-3 pulse to 1950us.
-    if(esc_4 > 1950)esc_4 = 1950;                                           //Limit the esc-4 pulse to 1950us.  
+    if(esc_4 > 1950)esc_4 = 1950;                                           //Limit the esc-4 pulse to 1950us.
   }
 
   else{
@@ -336,15 +337,21 @@ void loop(){
     esc_4 = 1000;                                                           //If flight_status is not 2 or 3 keep a 1000us pulse for esc-4.
   }
 
+  //This will limit the change in esc values between loops.  The goal is to
+  esc_1 = last_esc_1 * 0.85 + esc_1 * 0.15;                                 //Dampen changes in the esc value
+  esc_2 = last_esc_1 * 0.85 + esc_2 * 0.15;                                 //Dampen changes in the esc value
+  esc_3 = last_esc_1 * 0.85 + esc_3 * 0.15;                                 //Dampen changes in the esc value
+  esc_4 = last_esc_1 * 0.85 + esc_4 * 0.15;                                 //Dampen changes in the esc value
+
   //! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
-  //Because of the angle calculation the loop time is getting very important. If the loop time is 
-  //longer or shorter than 4000us, the angle calculation is off. If you modify the code make sure 
+  //Because of the angle calculation the loop time is getting very important. If the loop time is
+  //longer or shorter than 4000us, the angle calculation is off. If you modify the code make sure
   //that the loop time is still 4000us and no longer.
   //! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
-    
+
   if(micros() - loop_timer > 4050)digitalWrite(12, HIGH);                   //Turn on the LED if the loop time exceeds 4050us.
   Serial.println(micros() - loop_timer);
-  
+
   //All the information for controlling the motor's is available.
   //The refresh rate is 250Hz. That means the esc's need there pulse every 4ms.
   while(micros() - loop_timer < 4000);                                      //We wait until 4000us are passed.
@@ -355,7 +362,12 @@ void loop(){
   timer_channel_2 = esc_2 + loop_timer;                                     //Calculate the time of the falling edge of the esc-2 pulse.
   timer_channel_3 = esc_3 + loop_timer;                                     //Calculate the time of the falling edge of the esc-3 pulse.
   timer_channel_4 = esc_4 + loop_timer;                                     //Calculate the time of the falling edge of the esc-4 pulse.
-  
+
+  last_esc_1 = esc_1;                                                       //Set last_esc value to the esc val from the last cycle
+  last_esc_2 = esc_2;                                                       //Set last_esc value to the esc val from the last cycle
+  last_esc_3 = esc_3;                                                       //Set last_esc value to the esc val from the last cycle
+  last_esc_4 = esc_4;                                                       //Set last_esc value to the esc val from the last cycle
+
   //There is always 1000us of spare time. So let's do something usefull that is very time consuming.
   //Get the current gyro and receiver data and scale it to degrees per second for the pid calculations.
   gyro_signalen();
