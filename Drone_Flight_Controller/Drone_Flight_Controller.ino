@@ -58,7 +58,7 @@ int acc_axis[4], gyro_axis[4];
 float roll_level_adjust, pitch_level_adjust;
 double gyro_axis_cal[4];
 long signal_center = 500;
-long throttle_signal_center = 250;
+long throttle_signal_center = 350;
 
 long acc_x, acc_y, acc_z, acc_total_vector;
 unsigned long timer_channel_1, timer_channel_2, timer_channel_3, timer_channel_4, esc_timer, esc_loop_timer;
@@ -69,6 +69,7 @@ double gyro_pitch_cal, gyro_roll_cal, gyro_yaw_cal;
 int16_t angle_pitch_acc_cal, angle_roll_acc_cal;
 
 //Auto-Level PID Settings
+bool auto_height = false;
 float pid_error_temp;
 float pid_i_mem_roll, pid_roll_setpoint, gyro_roll_input, pid_output_roll, pid_last_roll_d_error;
 float pid_i_mem_pitch, pid_pitch_setpoint, gyro_pitch_input, pid_output_pitch, pid_last_pitch_d_error;
@@ -245,9 +246,11 @@ void loop(){
     pid_last_yaw_d_error = 0;
   }
   //Start and stop auto altitude depending on the height and stick placement
-  if(flight_status == 2 && receiver_input_channel_3 > 1200 && receiver_input_channel_3 < 1300 && current_height > 2){
-    flight_status = 3;
-    pid_altitude_setpoint = current_height;                                        //Adjust the setpoint to the actual pressure value so the output of the P- and I-controller are 0.
+  if(flight_status == 2 && auto_height){
+    if(receiver_input_channel_3 > (1000+throttle_signal_center-50) && receiver_input_channel_3 < (1000+throttle_signal_center+50) && current_height > 2){
+      flight_status = 3;
+      pid_altitude_setpoint = current_height;                                      //Adjust the setpoint to the actual pressure value so the output of the P- and I-controller are 0.
+    }
   }
   else if(flight_status == 3 && (receiver_input_channel_3 < 1200 || receiver_input_channel_3 > 1300 || current_height < 2)) {
     flight_status = 2;
