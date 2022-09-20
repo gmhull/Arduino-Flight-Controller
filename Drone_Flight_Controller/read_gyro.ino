@@ -7,12 +7,12 @@ void gyro_signalen(){
   Wire.write(0x3B);                                                       //Start reading @ register 43h and auto increment with every read.
   Wire.endTransmission();                                                 //End the transmission.
   Wire.requestFrom(gyro_address,14);                                      //Request 14 bytes from the gyro.
-  
+
   receiver_input_channel_1 = convert_receiver_channel(1);                 //Convert the actual receiver signals for pitch to the standard 1000 - 2000us.
   receiver_input_channel_2 = convert_receiver_channel(2);                 //Convert the actual receiver signals for roll to the standard 1000 - 2000us.
-  receiver_input_channel_3 = convert_receiver_channel(3);                 //Convert the actual receiver signals for throttle to the standard 1000 - 2000us.
+  receiver_input_channel_3 = convert_throttle_receiver_channel(3);        //Convert the actual receiver signals for throttle to the standard 1000 - 2000us.
   receiver_input_channel_4 = convert_receiver_channel(4);                 //Convert the actual receiver signals for yaw to the standard 1000 - 2000us.
-  
+
   while(Wire.available() < 14);                                           //Wait until the 14 bytes are received.
   acc_x = Wire.read()<<8|Wire.read();                                     //Add the low and high byte to the acc_x variable.
   acc_y = Wire.read()<<8|Wire.read();                                     //Add the low and high byte to the acc_y variable.
@@ -24,7 +24,7 @@ void gyro_signalen(){
 
   acc_z *= -1;                                                            //Invert acc_z
   gyro_yaw *= -1;                                                         //Invert gyro_yaw
-  
+
 
   //Compensate for gyro offsets once the calibration has been completed.
   if(cal_int == 2000){
@@ -69,8 +69,8 @@ void set_gyro_registers(){
     Wire.beginTransmission(gyro_address);                                 //Start communication with the address found during search
     Wire.write(0x1A);                                                     //We want to write to the CONFIG register (1A hex)
     Wire.write(0x03);                                                     //Set the register bits as 00000011 (Set Digital Low Pass Filter to ~43Hz)
-    Wire.endTransmission();                                               //End the transmission with the gyro    
-  }  
+    Wire.endTransmission();                                               //End the transmission with the gyro
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
