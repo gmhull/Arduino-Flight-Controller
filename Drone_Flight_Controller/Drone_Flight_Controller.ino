@@ -22,9 +22,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //PID gain and limit settings
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float pid_p_gain_roll = 0.6;               //Gain setting for the roll P-controller (0.)
-float pid_i_gain_roll = 0.0;              //Gain setting for the roll I-controller (0.)
-float pid_d_gain_roll = 9.0;              //Gain setting for the roll D-controller (9.0)
+float pid_p_gain_roll = 0.7;               //Gain setting for the roll P-controller (0.7)
+float pid_i_gain_roll = 0.025;             //Gain setting for the roll I-controller (0.025)
+float pid_d_gain_roll = 4.0;               //Gain setting for the roll D-controller (4.0)
 int pid_max_roll = 400;                    //Maximum output of the PID-controller (+/-)
 
 float pid_p_gain_pitch = pid_p_gain_roll;  //Gain setting for the pitch P-controller.
@@ -32,7 +32,7 @@ float pid_i_gain_pitch = pid_i_gain_roll;  //Gain setting for the pitch I-contro
 float pid_d_gain_pitch = pid_d_gain_roll;  //Gain setting for the pitch D-controller.
 int pid_max_pitch = pid_max_roll;          //Maximum output of the PID-controller (+/-)
 
-float pid_p_gain_yaw = 3.0;                //Gain setting for the pitch P-controller. //4.0
+float pid_p_gain_yaw = 3.0;                //Gain setting for the pitch P-controller. //3.0
 float pid_i_gain_yaw = 0.02;               //Gain setting for the pitch I-controller. //0.02
 float pid_d_gain_yaw = 0.0;                //Gain setting for the pitch D-controller.
 int pid_max_yaw = 400;                     //Maximum output of the PID-controller (+/-)
@@ -194,6 +194,12 @@ void loop(){
 
   get_barometer_data();                                                     //Read the barometer data and calculate the altitude PID outputs
 
+  Serial.print("PID Roll Setpoint: ");
+  Serial.println(pid_roll_setpoint);
+  Serial.print("PID Pitch Setpoint: ");
+  Serial.println(pid_pitch_setpoint);
+  
+
   //65.5 = 1 deg/sec (check the datasheet of the MPU-6050 for more information).
   gyro_roll_input = (gyro_roll_input * 0.7) + ((gyro_roll / 65.5) * 0.3);   //Gyro pid input is deg/sec.
   gyro_pitch_input = (gyro_pitch_input * 0.7) + ((gyro_pitch / 65.5) * 0.3);//Gyro pid input is deg/sec.
@@ -347,7 +353,7 @@ void loop(){
   //! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 
   if(micros() - loop_timer > 4050)digitalWrite(12, HIGH);                   //Turn on the LED if the loop time exceeds 4050us.
-  Serial.println(micros() - loop_timer);
+//  Serial.println(micros() - loop_timer);
 
   //All the information for controlling the motor's is available.
   //The refresh rate is 250Hz. That means the esc's need there pulse every 4ms.
