@@ -54,6 +54,9 @@ float angle_roll_acc, angle_pitch_acc, angle_pitch, angle_roll;
 int cal_int;
 double gyro_axis_cal[4];
 
+//Variable used to determine which board we are using. 0 = Arduino Uno, 1 = Arduino Nano
+int board_type = 1;
+
 //Setup routine
 void setup(){
   Serial.begin(57600);                                                                  //Start the serial port.
@@ -66,10 +69,18 @@ void setup(){
   DDRB |= B00010000;                                                                    //Configure digital poort 12 as output.
 
   PCICR |= (1 << PCIE2);                                                                // set PCIE0 to enable PCMSK2 scan.
-  PCMSK2 |= (1 << PCINT20);                                                             //Set PCINT20 (digital input 4) to trigger an interrupt on state change.
-  PCMSK2 |= (1 << PCINT21);                                                             //Set PCINT21 (digital input 5)to trigger an interrupt on state change.
-  PCMSK2 |= (1 << PCINT22);                                                             //Set PCINT22 (digital input 6)to trigger an interrupt on state change.
-  PCMSK2 |= (1 << PCINT23);                                                             //Set PCINT23 (digital input 7)to trigger an interrupt on state change.
+  if (board_type == 0){
+    PCMSK2 |= (1 << PCINT20);                                                           //Set PCINT20 (digital input 4) to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT21);                                                           //Set PCINT21 (digital input 5)to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT22);                                                           //Set PCINT22 (digital input 6)to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT23);                                                           //Set PCINT23 (digital input 7)to trigger an interrupt on state change.
+  } else if (board_type == 1){
+    PCMSK2 |= (1 << PCINT18);                                                           //Set PCINT18 (digital input 2)to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT19);                                                           //Set PCINT19 (digital input 3)to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT20);                                                           //Set PCINT20 (digital input 4) to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT21);                                                           //Set PCINT21 (digital input 5)to trigger an interrupt on state change.
+  }
+  
   Serial.println("Interupts Set");
 
   for(data = 0; data <= 35; data++)eeprom_data[data] = EEPROM.read(data);               //Read EEPROM for faster data access
@@ -318,53 +329,103 @@ void loop(){
 }
 
 
-
-//This routine is called every time input 4, 5, 6 or 7 changed state.
+//This routine is called every time input 4, 5, 6 or 7 changed state
 ISR(PCINT2_vect){
   current_time = micros();
-  //Channel 1=========================================
-  if(PIND & B00010000){                                                     //Is input 4 high?
-    if(last_channel_1 == 0){                                                //Input 4 changed from 0 to 1.
-      last_channel_1 = 1;                                                   //Remember current input state.
-      timer_1 = current_time;                                               //Set timer_1 to current_time.
+  if (board_type == 0){
+    //Channel 1=========================================
+    if(PIND & B00010000){                                        //Is input 4 high?
+      if(last_channel_1 == 0){                                   //Input 4 changed from 0 to 1
+        last_channel_1 = 1;                                      //Remember current input state
+        timer_1 = current_time;                                  //Set timer_1 to current_time
+      }
     }
-  }
-  else if(last_channel_1 == 1){                                             //Input 4 is not high and changed from 1 to 0.
-    last_channel_1 = 0;                                                     //Remember current input state.
-    receiver_input[1] = current_time - timer_1;                             //Channel 1 is current_time - timer_1.
-  }
-  //Channel 2=========================================
-  if(PIND & B00100000 ){                                                    //Is input 5 high?
-    if(last_channel_2 == 0){                                                //Input 5 changed from 0 to 1.
-      last_channel_2 = 1;                                                   //Remember current input state.
-      timer_2 = current_time;                                               //Set timer_2 to current_time.
+    else if(last_channel_1 == 1){                                //Input 4 is not high and changed from 1 to 0
+      last_channel_1 = 0;                                        //Remember current input state
+      receiver_input_channel_1 = current_time - timer_1;         //Channel 1 is current_time - timer_1
     }
-  }
-  else if(last_channel_2 == 1){                                             //Input 5 is not high and changed from 1 to 0.
-    last_channel_2 = 0;                                                     //Remember current input state.
-    receiver_input[2] = current_time - timer_2;                             //Channel 2 is current_time - timer_2.
-  }
-  //Channel 3=========================================
-  if(PIND & B01000000 ){                                                    //Is input 6 high?
-    if(last_channel_3 == 0){                                                //Input 6 changed from 0 to 1.
-      last_channel_3 = 1;                                                   //Remember current input state.
-      timer_3 = current_time;                                               //Set timer_3 to current_time.
+    //Channel 2=========================================
+    if(PIND & B00100000 ){                                       //Is input 5 high?
+      if(last_channel_2 == 0){                                   //Input 5 changed from 0 to 1
+        last_channel_2 = 1;                                      //Remember current input state
+        timer_2 = current_time;                                  //Set timer_2 to current_time
+      }
     }
-  }
-  else if(last_channel_3 == 1){                                             //Input 6 is not high and changed from 1 to 0.
-    last_channel_3 = 0;                                                     //Remember current input state.
-    receiver_input[3] = current_time - timer_3;                             //Channel 3 is current_time - timer_3.
-  }
-  //Channel 4=========================================
-  if(PIND & B10000000 ){                                                    //Is input 7 high?
-    if(last_channel_4 == 0){                                                //Input 7 changed from 0 to 1.
-      last_channel_4 = 1;                                                   //Remember current input state.
-      timer_4 = current_time;                                               //Set timer_4 to current_time.
+    else if(last_channel_2 == 1){                                //Input 5 is not high and changed from 1 to 0
+      last_channel_2 = 0;                                        //Remember current input state
+      receiver_input_channel_2 = current_time - timer_2;         //Channel 2 is current_time - timer_2
     }
-  }
-  else if(last_channel_4 == 1){                                             //Input 7 is not high and changed from 1 to 0.
-    last_channel_4 = 0;                                                     //Remember current input state.
-    receiver_input[4] = current_time - timer_4;                             //Channel 4 is current_time - timer_4.
+    //Channel 3=========================================
+    if(PIND & B01000000 ){                                       //Is input 6 high?
+      if(last_channel_3 == 0){                                   //Input 6 changed from 0 to 1
+        last_channel_3 = 1;                                      //Remember current input state
+        timer_3 = current_time;                                  //Set timer_3 to current_time
+      }
+    }
+    else if(last_channel_3 == 1){                                //Input 6 is not high and changed from 1 to 0
+      last_channel_3 = 0;                                        //Remember current input state
+      receiver_input_channel_3 = current_time - timer_3;         //Channel 3 is current_time - timer_3
+  
+    }
+    //Channel 4=========================================
+    if(PIND & B10000000 ){                                       //Is input 7 high?
+      if(last_channel_4 == 0){                                   //Input 7 changed from 0 to 1
+        last_channel_4 = 1;                                      //Remember current input state
+        timer_4 = current_time;                                  //Set timer_4 to current_time
+      }
+    }
+    else if(last_channel_4 == 1){                                //Input 7 is not high and changed from 1 to 0
+      last_channel_4 = 0;                                        //Remember current input state
+      receiver_input_channel_4 = current_time - timer_4;         //Channel 4 is current_time - timer_4
+    }
+
+  } else if (board_type == 1){
+    
+    //Channel 1=========================================
+    if(PIND & B00000100){                                        //Is input 2 high?
+      if(last_channel_1 == 0){                                   //Input 2 changed from 0 to 1
+        last_channel_1 = 1;                                      //Remember current input state
+        timer_1 = current_time;                                  //Set timer_1 to current_time
+      }
+    }
+    else if(last_channel_1 == 1){                                //Input 2 is not high and changed from 1 to 0
+      last_channel_1 = 0;                                        //Remember current input state
+      receiver_input[1] = current_time - timer_1;         //Channel 1 is current_time - timer_1
+    }
+    //Channel 2=========================================
+    if(PIND & B00001000 ){                                       //Is input 3 high?
+      if(last_channel_2 == 0){                                   //Input 3 changed from 0 to 1
+        last_channel_2 = 1;                                      //Remember current input state
+        timer_2 = current_time;                                  //Set timer_2 to current_time
+      }
+    }
+    else if(last_channel_2 == 1){                                //Input 3 is not high and changed from 1 to 0
+      last_channel_2 = 0;                                        //Remember current input state
+      receiver_input[2] = current_time - timer_2;         //Channel 2 is current_time - timer_2
+    }
+    //Channel 3=========================================
+    if(PIND & B00010000 ){                                       //Is input 4 high?
+      if(last_channel_3 == 0){                                   //Input 4 changed from 0 to 1
+        last_channel_3 = 1;                                      //Remember current input state
+        timer_3 = current_time;                                  //Set timer_3 to current_time
+      }
+    }
+    else if(last_channel_3 == 1){                                //Input 4 is not high and changed from 1 to 0
+      last_channel_3 = 0;                                        //Remember current input state
+      receiver_input[3] = current_time - timer_3;         //Channel 3 is current_time - timer_3
+  
+    }
+    //Channel 4=========================================
+    if(PIND & B00100000 ){                                       //Is input 5 high?
+      if(last_channel_4 == 0){                                   //Input 5 changed from 0 to 1
+        last_channel_4 = 1;                                      //Remember current input state
+        timer_4 = current_time;                                  //Set timer_4 to current_time
+      }
+    }
+    else if(last_channel_4 == 1){                                //Input 5 is not high and changed from 1 to 0
+      last_channel_4 = 0;                                        //Remember current input state
+      receiver_input[4] = current_time - timer_4;         //Channel 4 is current_time - timer_4
+    }
   }
 }
 

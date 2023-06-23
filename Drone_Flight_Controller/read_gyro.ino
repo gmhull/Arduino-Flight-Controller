@@ -14,24 +14,34 @@ void gyro_signalen(){
   receiver_input_channel_4 = convert_receiver_channel(4);                 //Convert the actual receiver signals for yaw to the standard 1000 - 2000us.
 
   while(Wire.available() < 14);                                           //Wait until the 14 bytes are received.
-  acc_x = Wire.read()<<8|Wire.read();                                     //Add the low and high byte to the acc_x variable.
-  acc_y = Wire.read()<<8|Wire.read();                                     //Add the low and high byte to the acc_y variable.
-  acc_z = Wire.read()<<8|Wire.read();                                     //Add the low and high byte to the acc_z variable.
+  acc_axis[1] = Wire.read()<<8|Wire.read();                               //Add the low and high byte to the acc_x variable.
+  acc_axis[2] = Wire.read()<<8|Wire.read();                               //Add the low and high byte to the acc_y variable.
+  acc_axis[3] = Wire.read()<<8|Wire.read();                               //Add the low and high byte to the acc_z variable.
   temperature = Wire.read()<<8|Wire.read();                               //Add the low and high byte to the temperature variable.
-  gyro_pitch = Wire.read()<<8|Wire.read();                                //Read high and low part of the angular data.
-  gyro_roll = Wire.read()<<8|Wire.read();                                 //Read high and low part of the angular data.
-  gyro_yaw = Wire.read()<<8|Wire.read();                                  //Read high and low part of the angular data.
-
-  acc_z *= -1;                                                            //Invert acc_z
-  gyro_yaw *= -1;                                                         //Invert gyro_yaw
-
+  gyro_axis[1] = Wire.read()<<8|Wire.read();                              //Read high and low part of the angular data.
+  gyro_axis[2] = Wire.read()<<8|Wire.read();                              //Read high and low part of the angular data.
+  gyro_axis[3] = Wire.read()<<8|Wire.read();                              //Read high and low part of the angular data.
 
   //Compensate for gyro offsets once the calibration has been completed.
   if(cal_int == 2000){
-    gyro_pitch -= gyro_pitch_cal;                                         //Only compensate after the calibration.
-    gyro_roll -= gyro_roll_cal;                                           //Only compensate after the calibration.
-    gyro_yaw -= gyro_yaw_cal;                                             //Only compensate after the calibration.
+    gyro_axis[1] -= gyro_axis_cal[1];                                     //Only compensate after the calibration.
+    gyro_axis[2] -= gyro_axis_cal[2];                                     //Only compensate after the calibration.
+    gyro_axis[3] -= gyro_axis_cal[3];                                     //Only compensate after the calibration.
   }
+
+  gyro_roll = gyro_axis[eeprom_data[28] & 0b00000011];                    //Set gyro_roll to the correct axis that was stored in the EEPROM.
+  if(eeprom_data[28] & 0b10000000)gyro_roll *= -1;                        //Invert gyro_roll if the MSB of EEPROM bit 28 is set.
+  gyro_pitch = gyro_axis[eeprom_data[29] & 0b00000011];                   //Set gyro_pitch to the correct axis that was stored in the EEPROM.
+  if(eeprom_data[29] & 0b10000000)gyro_pitch *= -1;                       //Invert gyro_pitch if the MSB of EEPROM bit 29 is set.
+  gyro_yaw = gyro_axis[eeprom_data[30] & 0b00000011];                     //Set gyro_yaw to the correct axis that was stored in the EEPROM.
+  if(eeprom_data[30] & 0b10000000)gyro_yaw *= -1;                         //Invert gyro_yaw if the MSB of EEPROM bit 30 is set.
+
+  acc_x = acc_axis[eeprom_data[29] & 0b00000011];                         //Set acc_x to the correct axis that was stored in the EEPROM.
+  if(eeprom_data[29] & 0b10000000)acc_x *= -1;                            //Invert acc_x if the MSB of EEPROM bit 29 is set.
+  acc_y = acc_axis[eeprom_data[28] & 0b00000011];                         //Set acc_y to the correct axis that was stored in the EEPROM.
+  if(eeprom_data[28] & 0b10000000)acc_y *= -1;                            //Invert acc_y if the MSB of EEPROM bit 28 is set.
+  acc_z = acc_axis[eeprom_data[30] & 0b00000011];                         //Set acc_z to the correct axis that was stored in the EEPROM.
+  if(eeprom_data[30] & 0b10000000)acc_z *= -1;                            //Invert acc_z if the MSB of EEPROM bit 30 is set.
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,25 +87,29 @@ void set_gyro_registers(){
 //Subroutine for calibrating the gyro
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void calibrate_gyro(void) {
-  //Let's take multiple gyro data samples so we can determine the average gyro offset (calibration).
+  //Lets take multiple gyro data samples so we can determine the average gyro offset (calibration).
   for (cal_int = 0; cal_int < 2000 ; cal_int ++){                         //Take 2000 readings for calibration.
-    if(cal_int % 15 == 0)digitalWrite(12, !digitalRead(12));              //Change the led status to indicate calibration.
+    if(cal_int % 15 == 0)digitalWrite(LED_PIN, !digitalRead(LED_PIN));    //Change the led status to indicate calibration.
     gyro_signalen();                                                      //Read the gyro output.
-    gyro_pitch_cal += gyro_pitch;                                         //Add pitch value to gyro_roll_cal.
-    gyro_roll_cal += gyro_roll;                                           //Add roll value to gyro_pitch_cal.
-    gyro_yaw_cal += gyro_yaw;                                             //Add yaw value to gyro_yaw_cal.
-    angle_pitch_acc_cal += acc_x;                                             //Add acc_x to pitch angle cal value
-    angle_roll_acc_cal += acc_y;                                              //Add acc_y to roll angle cal value
-    //We don't want the esc's to be beeping annoyingly. So let's give them a 1000us puls while calibrating the gyro.
+    gyro_axis_cal[1] += gyro_axis[1];                                     //Add pitch value to gyro_roll_cal.
+    gyro_axis_cal[2] += gyro_axis[2];                                     //Add roll value to gyro_pitch_cal.
+    gyro_axis_cal[3] += gyro_axis[3];                                     //Add yaw value to gyro_yaw_cal.
+    //We don't want the esc's to be beeping, so let's give them a 1000us pulse while calibrating the gyro.
     PORTB |= B00001111;                                                   //Set digital poort 8, 9, 10 and 11 high.
     delayMicroseconds(1000);                                              //Wait 1000us.
     PORTB &= B11110000;                                                   //Set digital poort 8, 9, 10 and 11 low.
     delay(3);                                                             //Wait 3 milliseconds before the next loop.
   }
-  //Now that we have 2000 measures, we need to devide by 2000 to get the average gyro offset.
-  gyro_pitch_cal /= 2000;                                                 //Divide the roll total by 2000.
-  gyro_roll_cal /= 2000;                                                  //Divide the pitch total by 2000.
-  gyro_yaw_cal /= 2000;                                                   //Divide the yaw total by 2000.
-  angle_pitch_acc_cal /= 2000;                                            //Divide the pitch angle by 2000.
-  angle_roll_acc_cal /= 2000;                                             //Divide the roll angle by 2000.
+  //Now that we have 2000 measures, we need to divide by 2000 to get the average gyro offset.
+  gyro_axis_cal[1] /= 2000;                                               //Divide the roll total by 2000.
+  gyro_axis_cal[2] /= 2000;                                               //Divide the pitch total by 2000.
+  gyro_axis_cal[3] /= 2000;                                               //Divide the yaw total by 2000.
+
+  //Print out the cal data.
+  Serial.print("Gyro Pitch Cal: ");
+  Serial.println(gyro_axis_cal[1]);  
+  Serial.print("Gyro Roll Cal: ");
+  Serial.println(gyro_axis_cal[2]);
+  Serial.print("Gyro Yaw Cal: ");
+  Serial.println(gyro_axis_cal[3]);
 }

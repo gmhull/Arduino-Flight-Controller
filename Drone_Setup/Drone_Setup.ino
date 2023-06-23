@@ -31,7 +31,13 @@ int low_channel_1, low_channel_2, low_channel_3, low_channel_4;
 int address, cal_int;
 unsigned long timer, timer_1, timer_2, timer_3, timer_4, current_time;
 float gyro_pitch, gyro_roll, gyro_yaw;
+float acc_pitch, acc_roll, acc_yaw;
 float gyro_roll_cal, gyro_pitch_cal, gyro_yaw_cal;
+int16_t angle_pitch_acc_cal, angle_roll_acc_cal;
+int temperature;
+
+//Variable used to determine which board we are using. 0 = Arduino Uno, 1 = Arduino Nano
+int board_type = 1; 
 
 
 //Setup routine
@@ -40,10 +46,17 @@ void setup(){
   pinMode(12, OUTPUT);
   //Arduino (Atmega) pins default to inputs, so they don't need to be explicitly declared as inputs
   PCICR |= (1 << PCIE2);    // set PCIE0 to enable PCMSK2 scan
-  PCMSK2 |= (1 << PCINT20); //Set PCINT20 (digital input 4) to trigger an interrupt on state change.
-  PCMSK2 |= (1 << PCINT21); //Set PCINT21 (digital input 5)to trigger an interrupt on state change.
-  PCMSK2 |= (1 << PCINT22); //Set PCINT22 (digital input 6)to trigger an interrupt on state change.
-  PCMSK2 |= (1 << PCINT23); //Set PCINT23 (digital input 7)to trigger an interrupt on state change.
+  if (board_type == 0){
+    PCMSK2 |= (1 << PCINT20); //Set PCINT20 (digital input 4) to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT21); //Set PCINT21 (digital input 5)to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT22); //Set PCINT22 (digital input 6)to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT23); //Set PCINT23 (digital input 7)to trigger an interrupt on state change.
+  } else {
+    PCMSK2 |= (1 << PCINT18); //Set PCINT18 (digital input 2)to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT19); //Set PCINT19 (digital input 3)to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT20); //Set PCINT20 (digital input 4) to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT21); //Set PCINT21 (digital input 5)to trigger an interrupt on state change.
+  }
   Wire.begin();             //Start the I2C as master
   delay(250);               //Give the gyro time to start 
 }
@@ -292,15 +305,19 @@ void loop(){
     for (cal_int = 0; cal_int < 2000 ; cal_int ++){              //Take 2000 readings for calibration.
       if(cal_int % 100 == 0)Serial.print(F("."));                //Print dot to indicate calibration.
       gyro_signalen();                                           //Read the gyro output.
-      gyro_roll_cal += gyro_roll;                                //Ad roll value to gyro_roll_cal.
-      gyro_pitch_cal += gyro_pitch;                              //Ad pitch value to gyro_pitch_cal.
-      gyro_yaw_cal += gyro_yaw;                                  //Ad yaw value to gyro_yaw_cal.
+      gyro_roll_cal += gyro_roll;                                //Add roll value to gyro_roll_cal.
+      gyro_pitch_cal += gyro_pitch;                              //Add pitch value to gyro_pitch_cal.
+      gyro_yaw_cal += gyro_yaw;                                  //Add yaw value to gyro_yaw_cal.
+      angle_pitch_acc_cal += acc_pitch;
+      angle_roll_acc_cal += acc_roll;
       delay(4);                                                  //Wait 3 milliseconds before the next loop.
     }
     //Now that we have 2000 measures, we need to devide by 2000 to get the average gyro offset.
     gyro_roll_cal /= 2000;                                       //Divide the roll total by 2000.
     gyro_pitch_cal /= 2000;                                      //Divide the pitch total by 2000.
     gyro_yaw_cal /= 2000;                                        //Divide the yaw total by 2000.
+    angle_pitch_acc_cal /= 2000;                                 //Divide the acc pitch total by 2000.
+    angle_roll_acc_cal /= 2000;                                  //Divide the acc roll total by 2000.
     
     //Show the calibration results
     Serial.println(F(""));
@@ -310,6 +327,10 @@ void loop(){
     Serial.println(gyro_pitch_cal);
     Serial.print(F("Axis 3 offset="));
     Serial.println(gyro_yaw_cal);
+    Serial.print(F("Axis 1 acc offset="));
+    Serial.println(angle_roll_acc_cal);
+    Serial.print(F("Axis 2 acc offset="));
+    Serial.println(angle_pitch_acc_cal);
     Serial.println(F(""));
     
     Serial.println(F("==================================================="));
@@ -602,10 +623,14 @@ void gyro_signalen(){
   }
   if(type == 1){
     Wire.beginTransmission(address);                             //Start communication with the gyro
-    Wire.write(0x43);                                            //Start reading @ register 43h and auto increment with every read
+    Wire.write(0x3B);                                            //Start reading @ register 43h and auto increment with every read
     Wire.endTransmission();                                      //End the transmission
-    Wire.requestFrom(address,6);                                 //Request 6 bytes from the gyro
-    while(Wire.available() < 6);                                 //Wait until the 6 bytes are received
+    Wire.requestFrom(address,14);                                 //Request 6 bytes from the gyro
+    while(Wire.available() < 14);                                 //Wait until the 6 bytes are received
+    acc_roll=Wire.read()<<8|Wire.read();                         //Read high and low part of the accel data
+    acc_pitch=Wire.read()<<8|Wire.read();                        //Read high and low part of the accel data
+    acc_yaw=Wire.read()<<8|Wire.read();                          //Read high and low part of the accel data
+    temperature=Wire.read()<<8|Wire.read();                      //Read high and low part of the temp data
     gyro_roll=Wire.read()<<8|Wire.read();                        //Read high and low part of the angular data
     if(cal_int == 2000)gyro_roll -= gyro_roll_cal;               //Only compensate after the calibration
     gyro_pitch=Wire.read()<<8|Wire.read();                       //Read high and low part of the angular data
@@ -798,50 +823,99 @@ void check_gyro_axes(byte movement){
 //This routine is called every time input 4, 5, 6 or 7 changed state
 ISR(PCINT2_vect){
   current_time = micros();
-  //Channel 1=========================================
-  if(PIND & B00010000){                                        //Is input 4 high?
-    if(last_channel_1 == 0){                                   //Input 4 changed from 0 to 1
-      last_channel_1 = 1;                                      //Remember current input state
-      timer_1 = current_time;                                  //Set timer_1 to current_time
+  if (board_type == 0){
+    //Channel 1=========================================
+    if(PIND & B00010000){                                        //Is input 4 high?
+      if(last_channel_1 == 0){                                   //Input 4 changed from 0 to 1
+        last_channel_1 = 1;                                      //Remember current input state
+        timer_1 = current_time;                                  //Set timer_1 to current_time
+      }
     }
-  }
-  else if(last_channel_1 == 1){                                //Input 4 is not high and changed from 1 to 0
-    last_channel_1 = 0;                                        //Remember current input state
-    receiver_input_channel_1 = current_time - timer_1;         //Channel 1 is current_time - timer_1
-  }
-  //Channel 2=========================================
-  if(PIND & B00100000 ){                                       //Is input 5 high?
-    if(last_channel_2 == 0){                                   //Input 5 changed from 0 to 1
-      last_channel_2 = 1;                                      //Remember current input state
-      timer_2 = current_time;                                  //Set timer_2 to current_time
+    else if(last_channel_1 == 1){                                //Input 4 is not high and changed from 1 to 0
+      last_channel_1 = 0;                                        //Remember current input state
+      receiver_input_channel_1 = current_time - timer_1;         //Channel 1 is current_time - timer_1
     }
-  }
-  else if(last_channel_2 == 1){                                //Input 5 is not high and changed from 1 to 0
-    last_channel_2 = 0;                                        //Remember current input state
-    receiver_input_channel_2 = current_time - timer_2;         //Channel 2 is current_time - timer_2
-  }
-  //Channel 3=========================================
-  if(PIND & B01000000 ){                                       //Is input 6 high?
-    if(last_channel_3 == 0){                                   //Input 6 changed from 0 to 1
-      last_channel_3 = 1;                                      //Remember current input state
-      timer_3 = current_time;                                  //Set timer_3 to current_time
+    //Channel 2=========================================
+    if(PIND & B00100000 ){                                       //Is input 5 high?
+      if(last_channel_2 == 0){                                   //Input 5 changed from 0 to 1
+        last_channel_2 = 1;                                      //Remember current input state
+        timer_2 = current_time;                                  //Set timer_2 to current_time
+      }
     }
-  }
-  else if(last_channel_3 == 1){                                //Input 6 is not high and changed from 1 to 0
-    last_channel_3 = 0;                                        //Remember current input state
-    receiver_input_channel_3 = current_time - timer_3;         //Channel 3 is current_time - timer_3
+    else if(last_channel_2 == 1){                                //Input 5 is not high and changed from 1 to 0
+      last_channel_2 = 0;                                        //Remember current input state
+      receiver_input_channel_2 = current_time - timer_2;         //Channel 2 is current_time - timer_2
+    }
+    //Channel 3=========================================
+    if(PIND & B01000000 ){                                       //Is input 6 high?
+      if(last_channel_3 == 0){                                   //Input 6 changed from 0 to 1
+        last_channel_3 = 1;                                      //Remember current input state
+        timer_3 = current_time;                                  //Set timer_3 to current_time
+      }
+    }
+    else if(last_channel_3 == 1){                                //Input 6 is not high and changed from 1 to 0
+      last_channel_3 = 0;                                        //Remember current input state
+      receiver_input_channel_3 = current_time - timer_3;         //Channel 3 is current_time - timer_3
+  
+    }
+    //Channel 4=========================================
+    if(PIND & B10000000 ){                                       //Is input 7 high?
+      if(last_channel_4 == 0){                                   //Input 7 changed from 0 to 1
+        last_channel_4 = 1;                                      //Remember current input state
+        timer_4 = current_time;                                  //Set timer_4 to current_time
+      }
+    }
+    else if(last_channel_4 == 1){                                //Input 7 is not high and changed from 1 to 0
+      last_channel_4 = 0;                                        //Remember current input state
+      receiver_input_channel_4 = current_time - timer_4;         //Channel 4 is current_time - timer_4
+    }
 
-  }
-  //Channel 4=========================================
-  if(PIND & B10000000 ){                                       //Is input 7 high?
-    if(last_channel_4 == 0){                                   //Input 7 changed from 0 to 1
-      last_channel_4 = 1;                                      //Remember current input state
-      timer_4 = current_time;                                  //Set timer_4 to current_time
+  } else {
+    //Channel 1=========================================
+    if(PIND & B00000100){                                        //Is input 2 high?
+      if(last_channel_1 == 0){                                   //Input 2 changed from 0 to 1
+        last_channel_1 = 1;                                      //Remember current input state
+        timer_1 = current_time;                                  //Set timer_1 to current_time
+      }
     }
-  }
-  else if(last_channel_4 == 1){                                //Input 7 is not high and changed from 1 to 0
-    last_channel_4 = 0;                                        //Remember current input state
-    receiver_input_channel_4 = current_time - timer_4;         //Channel 4 is current_time - timer_4
+    else if(last_channel_1 == 1){                                //Input 2 is not high and changed from 1 to 0
+      last_channel_1 = 0;                                        //Remember current input state
+      receiver_input_channel_1 = current_time - timer_1;         //Channel 1 is current_time - timer_1
+    }
+    //Channel 2=========================================
+    if(PIND & B00001000 ){                                       //Is input 3 high?
+      if(last_channel_2 == 0){                                   //Input 3 changed from 0 to 1
+        last_channel_2 = 1;                                      //Remember current input state
+        timer_2 = current_time;                                  //Set timer_2 to current_time
+      }
+    }
+    else if(last_channel_2 == 1){                                //Input 3 is not high and changed from 1 to 0
+      last_channel_2 = 0;                                        //Remember current input state
+      receiver_input_channel_2 = current_time - timer_2;         //Channel 2 is current_time - timer_2
+    }
+    //Channel 3=========================================
+    if(PIND & B00010000 ){                                       //Is input 4 high?
+      if(last_channel_3 == 0){                                   //Input 4 changed from 0 to 1
+        last_channel_3 = 1;                                      //Remember current input state
+        timer_3 = current_time;                                  //Set timer_3 to current_time
+      }
+    }
+    else if(last_channel_3 == 1){                                //Input 4 is not high and changed from 1 to 0
+      last_channel_3 = 0;                                        //Remember current input state
+      receiver_input_channel_3 = current_time - timer_3;         //Channel 3 is current_time - timer_3
+  
+    }
+    //Channel 4=========================================
+    if(PIND & B00100000 ){                                       //Is input 5 high?
+      if(last_channel_4 == 0){                                   //Input 5 changed from 0 to 1
+        last_channel_4 = 1;                                      //Remember current input state
+        timer_4 = current_time;                                  //Set timer_4 to current_time
+      }
+    }
+    else if(last_channel_4 == 1){                                //Input 5 is not high and changed from 1 to 0
+      last_channel_4 = 0;                                        //Remember current input state
+      receiver_input_channel_4 = current_time - timer_4;         //Channel 4 is current_time - timer_4
+    }
   }
 }
 

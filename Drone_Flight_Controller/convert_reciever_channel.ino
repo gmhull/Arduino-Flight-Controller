@@ -44,7 +44,10 @@ int convert_throttle_receiver_channel(byte function){
   center = (eeprom_data[channel * 2 - 1] << 8) | eeprom_data[channel * 2 - 2]; //Store the center value for the specific receiver input channel
   high = (eeprom_data[channel * 2 + 7] << 8) | eeprom_data[channel * 2 + 6];   //Store the high value for the specific receiver input channel
 
-  if(actual < center){                                                         //The actual receiver value is lower than the center value
+  if (actual == 0){
+    return 0;                                                                  //Return 0 if the receiver is not reading a signal
+  }
+  else if(actual < center){                                                    //The actual receiver value is lower than the center value
     if(actual < low)actual = low;                                              //Limit the lowest value to the value that was detected during setup
     difference = ((long)(center - actual) * throttle_signal_center) / (center - low);       //Calculate and scale the actual value to a 1000 - 2000us value
     if(reverse == 1)return 1000 + throttle_signal_center + difference;         //If the channel is reversed
