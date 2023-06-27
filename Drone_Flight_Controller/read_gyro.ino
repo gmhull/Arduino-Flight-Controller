@@ -106,10 +106,10 @@ void calibrate_gyro(void) {
   gyro_axis_cal[3] /= 2000;                                               //Divide the yaw total by 2000.
 
   //Print out the cal data.
-  Serial.print("Gyro Pitch Cal: ");
-  Serial.println(gyro_axis_cal[1]);  
-  Serial.print("Gyro Roll Cal: ");
-  Serial.println(gyro_axis_cal[2]);
-  Serial.print("Gyro Yaw Cal: ");
-  Serial.println(gyro_axis_cal[3]);
+//  Serial.print("Gyro Pitch Cal: ");
+//  Serial.println(gyro_axis_cal[1]);  
+//  Serial.print("Gyro Roll Cal: ");
+//  Serial.println(gyro_axis_cal[2]);
+//  Serial.print("Gyro Yaw Cal: ");
+//  Serial.println(gyro_axis_cal[3]);
 }

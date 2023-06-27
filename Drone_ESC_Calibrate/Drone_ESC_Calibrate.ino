@@ -316,9 +316,9 @@ void loop(){
 
       //We can't print all the data at once. This takes to long and the angular readings will be off.
       if(loop_counter == 0)Serial.print("Pitch: ");
-      if(loop_counter == 1)Serial.print(angle_pitch ,0);
+      if(loop_counter == 1)Serial.print(angle_pitch ,2);
       if(loop_counter == 2)Serial.print(" Roll: ");
-      if(loop_counter == 3)Serial.print(angle_roll ,0);
+      if(loop_counter == 3)Serial.print(angle_roll ,2);
       if(loop_counter == 4)Serial.print(" Yaw: ");
       if(loop_counter == 5)Serial.println(gyro_yaw / 65.5 ,0);
 

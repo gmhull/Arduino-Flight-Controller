@@ -74,7 +74,7 @@ void get_barometer_data(void) {
     float T = bmp.calculateTemperature(raw_temperature);    //Get the temperature and update the t_fine variable to calculate pressure
 //    Serial.println(T);
     float P = bmp.calculatePressure(raw_pressure);          //Get the temperature in pascals
-    
+
     //To get a smoother pressure value we will use a 20 location rotating memory.
     pressure_total_average -= pressure_rotating_mem[pressure_rotating_mem_location];                          //Subtract the current memory position to make room for the new value.
     pressure_rotating_mem[pressure_rotating_mem_location] = P;                                                //Calculate the new change between the actual pressure and the previous measurement.
@@ -107,10 +107,10 @@ void get_barometer_data(void) {
     if (parachute_rotating_mem_location == 30)parachute_rotating_mem_location = 0;                            //Start at 0 when the memory location 20 is reached.
 
     //Calculate the PID altitude output
-    //Need to get set the pid_altitude_setpoint when we enable altitude hold mode (sticks between 1400 and 1600
+    //Need to get set the pid_altitude_setpoint when we enable altitude hold mode 
     //Check the status register of the chip to see whether the measurements are ready to be taken
-    if (flight_status >= 2 && current_height > 2){
-      // If we are at least 2m off the ground and the sticks are level;
+    if (flight_status >= 2 && current_height > auto_height_min){
+      // If we are at least 2.5m off the ground and the sticks are level;
       if (pid_altitude_setpoint == 0)pid_altitude_setpoint = actual_pressure;         //If not yet set, set the PID altitude setpoint.
       //When the throttle stick position is increased or decreased the altitude hold function is partially disabled. The manual_altitude_change variable
       //will indicate if the altitude of the quadcopter is changed by the pilot.

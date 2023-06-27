@@ -76,12 +76,16 @@ float pid_i_mem_roll, pid_roll_setpoint, gyro_roll_input, pid_output_roll, pid_l
 float pid_i_mem_pitch, pid_pitch_setpoint, gyro_pitch_input, pid_output_pitch, pid_last_pitch_d_error;
 float pid_i_mem_yaw, pid_yaw_setpoint, gyro_yaw_input, pid_output_yaw, pid_last_yaw_d_error;
 float angle_roll_acc, angle_pitch_acc, angle_pitch, angle_roll;
+float angle_pitch_acc_offset, angle_roll_acc_offset;
 
 //Altitude PID Gain Settings
 float pid_error_gain_altitude, pid_error_temp_altitude, pid_throttle_gain_altitude, pid_i_mem_altitude, pid_last_d_error_altitude;
 float pid_altitude_setpoint, pid_output_altitude, pid_altitude_input;
-float altitude_cal, current_height;
+float altitude_cal; 
+float current_height = 1.5;
 uint8_t altitude_counter, bar_count, temp_count, manual_altitude_change;
+float auto_height_min = 2.5;
+bool barometer_cal_complete = false;
 
 //Temperature
 uint32_t raw_temperature, raw_average_temperature_total, raw_temperature_rotating_memory[6], raw_temperature_reading[6];
@@ -151,6 +155,8 @@ void setup() {
   set_gyro_registers();                                                     //Set the specific gyro registers.
 
   calibrate_gyro();                                                         //Get calibration offsets for the MPU6050
+  calibrate_accelerometer();
+  Serial.println("MPU Calibrated");
 
   PCICR |= (1 << PCIE2);                                                    //Set PCIE0 to enable PCMSK0 scan.
   if (board_type == 0) {
@@ -180,7 +186,7 @@ void setup() {
       start = 0;                                                            //Start again at 0.
     }
   }
-
+  // Flight Status: 0 = Flight Disabled, 1 = Ready to Fly, 2 = Normal Flying Mode, 3 = Auto Height Mode
   flight_status = 0;                                                        //Set the current flight status to 0 to prevent motors from starting
 
   //Load the battery voltage to the battery_voltage variable.
@@ -206,17 +212,17 @@ void loop() {
   //Turn off the LED light
   digitalWrite(LED_PIN, LOW);
 
-    if(loop_counter == 0)Serial.print("Acc X: ");
-    if(loop_counter == 1)Serial.print(acc_x);
-    if(loop_counter == 2)Serial.print(" Acc Y: ");
-    if(loop_counter == 3)Serial.println(acc_y);
-  //  if(loop_counter == 4)Serial.print("PID Pitch Setpoint: ");
-  //  if(loop_counter == 5)Serial.print(pid_pitch_setpoint);
-  //  if(loop_counter == 6)Serial.print(" Pitch Angle: ");
-  //  if(loop_counter == 7)Serial.println(angle_pitch);
+  //    if(loop_counter == 0)Serial.print("Angle Pitch: ");
+  //    if(loop_counter == 1)Serial.print(angle_pitch);
+  //    if(loop_counter == 2)Serial.print(" Angle Roll: ");
+  //    if(loop_counter == 3)Serial.println(angle_roll);
+  if (loop_counter == 4)Serial.print("Current Height: ");
+  if (loop_counter == 5)Serial.println(current_height);
+//  if (loop_counter == 6)Serial.print(" Actual Pressure: ");
+//  if (loop_counter == 7)Serial.println(actual_pressure);
   //
-    loop_counter ++;
-    if (loop_counter == 60)loop_counter = 0;
+  loop_counter ++;
+  if (loop_counter == 60)loop_counter = 0;
 
 
   get_barometer_data();                                                     //Read the barometer data and calculate the altitude PID outputs
@@ -245,10 +251,8 @@ void loop() {
     angle_roll_acc = asin((float)acc_x / acc_total_vector) * -57.296;       //Calculate the roll angle.
   }
 
-  //Enter the pitch and roll calibration values when resting on a flat surface.
-  //You can find these by running the ESC_Calibrate file.
-  angle_pitch_acc -= 2.25;                                                  //Accelerometer calibration value for pitch.
-  angle_roll_acc -= -.45;                                                   //Accelerometer calibration value for roll.
+  angle_pitch_acc -= angle_pitch_acc_offset;                                //Accelerometer calibration value for pitch.
+  angle_roll_acc -= angle_roll_acc_offset;                                  //Accelerometer calibration value for roll.
 
   angle_pitch = angle_pitch * 0.9996 + angle_pitch_acc * 0.0004;            //Correct the drift of the gyro pitch angle with the accelerometer pitch angle.
   angle_roll = angle_roll * 0.9996 + angle_roll_acc * 0.0004;               //Correct the drift of the gyro roll angle with the accelerometer roll angle.
@@ -256,11 +260,12 @@ void loop() {
   pitch_level_adjust = angle_pitch * 15;                                    //Calculate the pitch angle correction
   roll_level_adjust = angle_roll * 15;                                      //Calculate the roll angle correction
 
+
   //For starting the motors: throttle low and yaw left (step 1).
   if (receiver_input_channel_3 < 1050 && receiver_input_channel_4 < 1050)flight_status = 1;
   //When yaw stick is back in the center position start the motors (step 2).
   if (flight_status == 1 && receiver_input_channel_3 < 1050 && receiver_input_channel_4 > 1450) {
-    flight_status = 2;
+    flight_status = 2;                                                      //Prepare the quad for flight
 
     angle_pitch = angle_pitch_acc;                                          //Set the gyro pitch angle equal to the accelerometer pitch angle when the quadcopter is started.
     angle_roll = angle_roll_acc;                                            //Set the gyro roll angle equal to the accelerometer roll angle when the quadcopter is started.
@@ -273,20 +278,22 @@ void loop() {
     pid_i_mem_yaw = 0;
     pid_last_yaw_d_error = 0;
   }
+  
   //Start and stop auto altitude depending on the height and stick placement
+  //Enter auto height mode if throttle is in center of the range and barometer reads above minimum height.
   if (flight_status == 2 && auto_height) {
     if (receiver_input_channel_3 > (1000 + throttle_signal_center - 50) && \
         receiver_input_channel_3 < (1000 + throttle_signal_center + 50) && \
-        current_height > 2) {
+        current_height > auto_height_min) {
       flight_status = 3;
       pid_altitude_setpoint = current_height;                                      //Adjust the setpoint to the actual pressure value so the output of the P- and I-controller are 0.
     }
   }
-  //Exit auto height mode if the throttle is moved out of the center of the range.  Reset altitude PID values.
+  //Exit auto height mode if the throttle is in the center of the range.  Reset altitude PID values.
   if (flight_status == 3 && \
-      (receiver_input_channel_3 < (1000 + throttle_signal_center - 75) || \
-       receiver_input_channel_3 > (1000 + throttle_signal_center + 75) || \
-       current_height < 2)) {
+      (receiver_input_channel_3 > (1000 + throttle_signal_center - 50) && \
+       receiver_input_channel_3 < (1000 + throttle_signal_center + 50) && \
+       receiver_input_channel_4 > 1950)) {
     flight_status = 2;
     pid_altitude_setpoint = 0;                                                     //Reset the PID altitude setpoint.
     pid_output_altitude = 0;                                                       //Reset the output of the PID controller.
@@ -336,8 +343,8 @@ void loop() {
   //Turn on the led if battery voltage is to low.
   if (battery_voltage < 1000 && battery_voltage > 600)digitalWrite(LED_PIN, HIGH);
 
-  if (flight_status >= 2) {                                                 //The motors are started.
-    //The variable base_throttle is calculated in the following part. It forms the base throttle for every motor.
+  if (flight_status >= 2) {                                                 //Active when the motors are started.
+    //The throttle variable is calculated in the following part. It forms the base throttle for every motor.
     throttle = receiver_input_channel_3;                                    //The base throttle is the receiver throttle channel + the detected take-off throttle.
     if (flight_status == 3) {                                               //If altitude hold is active.
       throttle = 1000 + throttle_signal_center + \
