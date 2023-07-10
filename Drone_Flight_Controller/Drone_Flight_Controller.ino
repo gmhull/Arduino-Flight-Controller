@@ -22,9 +22,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //PID gain and limit settings
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float pid_p_gain_roll = 1.15;              //Gain setting for the roll P-controller (0.7)
-float pid_i_gain_roll = 0.02;              //Gain setting for the roll I-controller (0.025)
-float pid_d_gain_roll = 4.0;               //Gain setting for the roll D-controller (4.0)
+float pid_p_gain_roll = 1.3;               //Gain setting for the roll P-controller (1.3)
+float pid_i_gain_roll = 0.025;             //Gain setting for the roll I-controller (0.025)
+float pid_d_gain_roll = 16.5;              //Gain setting for the roll D-controller (16.5)
 int pid_max_roll = 400;                    //Maximum output of the PID-controller (+/-)
 
 float pid_p_gain_pitch = pid_p_gain_roll;  //Gain setting for the pitch P-controller.
@@ -58,7 +58,7 @@ int acc_axis[4], gyro_axis[4];
 float roll_level_adjust, pitch_level_adjust;
 double gyro_axis_cal[4], acc_axis_cal[4];
 long signal_center = 500;
-long throttle_signal_center = 350;
+long throttle_signal_center = 400;
 int LED_PIN;
 
 
@@ -212,17 +212,17 @@ void loop() {
   //Turn off the LED light
   digitalWrite(LED_PIN, LOW);
 
-  //    if(loop_counter == 0)Serial.print("Angle Pitch: ");
-  //    if(loop_counter == 1)Serial.print(angle_pitch);
-  //    if(loop_counter == 2)Serial.print(" Angle Roll: ");
-  //    if(loop_counter == 3)Serial.println(angle_roll);
-  if (loop_counter == 4)Serial.print("Current Height: ");
-  if (loop_counter == 5)Serial.println(current_height);
+//  if(loop_counter == 0)Serial.print("Angle Pitch: ");
+//  if(loop_counter == 1)Serial.print(angle_pitch);
+//  if(loop_counter == 2)Serial.print(" Angle Roll: ");
+//  if(loop_counter == 3)Serial.println(angle_roll);
+//  if (loop_counter == 4)Serial.print("Current Height: ");
+//  if (loop_counter == 5)Serial.println(current_height);
 //  if (loop_counter == 6)Serial.print(" Actual Pressure: ");
 //  if (loop_counter == 7)Serial.println(actual_pressure);
-  //
-  loop_counter ++;
-  if (loop_counter == 60)loop_counter = 0;
+//
+//  loop_counter ++;
+//  if (loop_counter == 60)loop_counter = 0;
 
 
   get_barometer_data();                                                     //Read the barometer data and calculate the altitude PID outputs
