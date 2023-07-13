@@ -1,6 +1,13 @@
 # Arduino Flight Controller
 This arduino flight controller project was inspired by Joop Brokking's auto-leveling quadcopter build.  My goal was to build this drone from scratch and then use an arduino as a controller instead of using an existing flight controller board.  The body of the drone was designed and 3D printed by me, I custom built a circuit board to connect all electronics, and I built out this flight controller to get everything working together.  
 
+<p align="center">
+    <img src="./Imgs/Arms Open.jpg" alt="Drone v1">
+    <img src="./Imgs/Arms Closed.jpg" alt="Drone v1">
+    <img src="./Imgs/Electronics Closeup.jpg" alt="Drone v1">
+    <i>Drone v2</i>
+</p>
+
 # Iterations
 The project has gone through a few iterations.  Version 1 was made using an Arduino Uno board at the core.  This was a quick build designed to get something into the air for the first time.  The body was a rough design and had a lot of flaws that made it harder to work with.  These were dealt with in the next iteration of the drone.
 
@@ -28,7 +35,11 @@ Parts for this project included:
 
 Here is a wiring diagram of the build:
 
-![Wiring Schematic](./Wiring%20Schematic.png?raw=true "Wiring Schematic")
+<p align="center">
+    <img src="./Imgs/Wiring%20Schematic.png" alt="Wiring Schematic">
+    <i>Wiring Schematic</i>
+</p>
+
 
 # Setup
 Once you have a built drone, you need to start by running the Drone_Setup file.  This will run you through a series of prompts to make sure that everything is set up correctly and that the correct remote inputs are being used.  At the end of these prompts, all data will be saved to the EEPROM.  
