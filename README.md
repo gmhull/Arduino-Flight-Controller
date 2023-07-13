@@ -4,7 +4,10 @@ Custom flight controller using Arduino Uno.
 This has been a long term project of mine.  It was heavily inspired by Joop Brokking's
 auto-leveling quadcopter build.  I 3D printed the body of the drone to house the electronics.  The flight controller for the drone was built using an Arduino Uno.
 
-![Drone Outside](./Drone.jpg?raw=true "Drone")
+<p align="center">
+    <img src="./Imgs/Drone v1.jpg" alt="Drone v1">
+    <i>Drone v1</i>
+</p>
 
 Parts for this project included:
 - Arduino Uno
