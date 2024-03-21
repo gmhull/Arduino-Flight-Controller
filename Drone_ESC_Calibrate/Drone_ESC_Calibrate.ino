@@ -69,16 +69,18 @@ void setup(){
   DDRB |= B00010000;                                                                    //Configure digital poort 12 as output.
 
   PCICR |= (1 << PCIE2);                                                                // set PCIE0 to enable PCMSK2 scan.
-  if (board_type == 0){
+  if (board_type == 0){                                                                 // Using an Arduino Uno board
     PCMSK2 |= (1 << PCINT20);                                                           //Set PCINT20 (digital input 4) to trigger an interrupt on state change.
     PCMSK2 |= (1 << PCINT21);                                                           //Set PCINT21 (digital input 5)to trigger an interrupt on state change.
     PCMSK2 |= (1 << PCINT22);                                                           //Set PCINT22 (digital input 6)to trigger an interrupt on state change.
     PCMSK2 |= (1 << PCINT23);                                                           //Set PCINT23 (digital input 7)to trigger an interrupt on state change.
-  } else if (board_type == 1){
+    LED_PIN = 12;                                                                       // Set LED pin based on the board type
+  } else if (board_type == 1){                                                          // Using an Arduino Nano board
     PCMSK2 |= (1 << PCINT18);                                                           //Set PCINT18 (digital input 2)to trigger an interrupt on state change.
     PCMSK2 |= (1 << PCINT19);                                                           //Set PCINT19 (digital input 3)to trigger an interrupt on state change.
     PCMSK2 |= (1 << PCINT20);                                                           //Set PCINT20 (digital input 4) to trigger an interrupt on state change.
     PCMSK2 |= (1 << PCINT21);                                                           //Set PCINT21 (digital input 5)to trigger an interrupt on state change.
+    LED_PIN = 13;                                                                       // Set LED pin based on the board type
   }
   
   Serial.println("Interupts Set");
@@ -92,7 +94,7 @@ void setup(){
   //Check the EEPROM signature to make sure that the setup program is executed.
   while(eeprom_data[33] != 'G' || eeprom_data[34] != 'H' || eeprom_data[35] != 'M'){
     delay(500);                                                                         //Wait for 500ms.
-    digitalWrite(12, !digitalRead(12));                                                 //Change the led status to indicate error.
+    digitalWrite(LED_PIN, !digitalRead(LED_PIN));                                                 //Change the led status to indicate error.
   }
   Serial.println("Waiting for Receiver");
   wait_for_receiver();                                                                  //Wait until the receiver is active.
@@ -161,10 +163,10 @@ void loop(){
   ////////////////////////////////////////////////////////////////////////////////////////////
   if(data == 'r'){
     loop_counter ++;                                                                    //Increase the loop_counter variable.
-    receiver_input_channel_1 = convert_receiver_channel(1);                           //Convert the actual receiver signals for pitch to the standard 1000 - 2000us.
-    receiver_input_channel_2 = convert_receiver_channel(2);                           //Convert the actual receiver signals for roll to the standard 1000 - 2000us.
-    receiver_input_channel_3 = convert_receiver_channel(3);                           //Convert the actual receiver signals for throttle to the standard 1000 - 2000us.
-    receiver_input_channel_4 = convert_receiver_channel(4);                           //Convert the actual receiver signals for yaw to the standard 1000 - 2000us.
+    receiver_input_channel_1 = convert_receiver_channel(1);                             //Convert the actual receiver signals for pitch to the standard 1000 - 2000us.
+    receiver_input_channel_2 = convert_receiver_channel(2);                             //Convert the actual receiver signals for roll to the standard 1000 - 2000us.
+    receiver_input_channel_3 = convert_receiver_channel(3);                             //Convert the actual receiver signals for throttle to the standard 1000 - 2000us.
+    receiver_input_channel_4 = convert_receiver_channel(4);                             //Convert the actual receiver signals for yaw to the standard 1000 - 2000us.
 
     if(loop_counter == 125){                                                            //Print the receiver values when the loop_counter variable equals 250.
       print_signals();                                                                  //Print the receiver values on the serial monitor.
@@ -260,7 +262,7 @@ void loop(){
       //Let's take multiple gyro data samples so we can determine the average gyro offset (calibration).
       for (cal_int = 0; cal_int < 2000 ; cal_int ++){                                   //Take 2000 readings for calibration.
         if(cal_int % 125 == 0){
-          digitalWrite(12, !digitalRead(12));   //Change the led status to indicate calibration.
+          digitalWrite(LED_PIN, !digitalRead(LED_PIN));                                 //Change the led status to indicate calibration.
           Serial.print(".");
         }
         gyro_signalen();                                                                //Read the gyro output.
@@ -390,7 +392,7 @@ ISR(PCINT2_vect){
     }
     else if(last_channel_1 == 1){                                //Input 2 is not high and changed from 1 to 0
       last_channel_1 = 0;                                        //Remember current input state
-      receiver_input[1] = current_time - timer_1;         //Channel 1 is current_time - timer_1
+      receiver_input[1] = current_time - timer_1;                //Channel 1 is current_time - timer_1
     }
     //Channel 2=========================================
     if(PIND & B00001000 ){                                       //Is input 3 high?
@@ -401,7 +403,7 @@ ISR(PCINT2_vect){
     }
     else if(last_channel_2 == 1){                                //Input 3 is not high and changed from 1 to 0
       last_channel_2 = 0;                                        //Remember current input state
-      receiver_input[2] = current_time - timer_2;         //Channel 2 is current_time - timer_2
+      receiver_input[2] = current_time - timer_2;                //Channel 2 is current_time - timer_2
     }
     //Channel 3=========================================
     if(PIND & B00010000 ){                                       //Is input 4 high?
@@ -412,7 +414,7 @@ ISR(PCINT2_vect){
     }
     else if(last_channel_3 == 1){                                //Input 4 is not high and changed from 1 to 0
       last_channel_3 = 0;                                        //Remember current input state
-      receiver_input[3] = current_time - timer_3;         //Channel 3 is current_time - timer_3
+      receiver_input[3] = current_time - timer_3;                //Channel 3 is current_time - timer_3
   
     }
     //Channel 4=========================================
@@ -424,7 +426,7 @@ ISR(PCINT2_vect){
     }
     else if(last_channel_4 == 1){                                //Input 5 is not high and changed from 1 to 0
       last_channel_4 = 0;                                        //Remember current input state
-      receiver_input[4] = current_time - timer_4;         //Channel 4 is current_time - timer_4
+      receiver_input[4] = current_time - timer_4;                //Channel 4 is current_time - timer_4
     }
   }
 }
@@ -463,7 +465,7 @@ int convert_receiver_channel(byte function){
     if(reverse == 1)return 1500 + difference;                                  //If the channel is reversed
     else return 1500 - difference;                                             //If the channel is not reversed
   }
-  else if(actual > center){                                                                        //The actual receiver value is higher than the center value
+  else if(actual > center){                                                    //The actual receiver value is higher than the center value
     if(actual > high)actual = high;                                            //Limit the lowest value to the value that was detected during setup
     difference = ((long)(actual - center) * (long)500) / (high - center);      //Calculate and scale the actual value to a 1000 - 2000us value
     if(reverse == 1)return 1500 - difference;                                  //If the channel is reversed
@@ -543,7 +545,7 @@ void set_gyro_registers(){
     Wire.requestFrom(gyro_address, 1);                           //Request 1 bytes from the gyro
     while(Wire.available() < 1);                                 //Wait until the 6 bytes are received
     if(Wire.read() != 0x08){                                     //Check if the value is 0x08
-      digitalWrite(12,HIGH);                                     //Turn on the warning led
+      digitalWrite(LED_PIN, HIGH);                               //Turn on the warning led
       while(1)delay(10);                                         //Stay in this loop for ever
     }
 
