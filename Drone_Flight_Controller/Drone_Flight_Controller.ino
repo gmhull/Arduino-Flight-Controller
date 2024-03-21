@@ -17,7 +17,8 @@
 
 #include <Wire.h>                          //Include the Wire.h library so we can communicate with the gyro.
 #include <EEPROM.h>                        //Include the EEPROM.h library so we can store information onto the EEPROM.
-#include <bmp_garth.h>                     //Include the Adafruit_BMP280 library so that we can get pressure data.
+#include <bmp280.h>                        //Include a modified Adafruit_BMP280 library so that we can get pressure data.
+                                           // Link is https://github.com/gmhull/Adafruit_BMP280_Library_Modified
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //PID gain and limit settings
@@ -160,15 +161,15 @@ void setup() {
 
   PCICR |= (1 << PCIE2);                                                    //Set PCIE0 to enable PCMSK0 scan.
   if (board_type == 0) {
-    PCMSK2 |= (1 << PCINT20);                                               //Set PCINT20 (digital input 4) to trigger an interrupt on state change.
-    PCMSK2 |= (1 << PCINT21);                                               //Set PCINT21 (digital input 5) to trigger an interrupt on state change.
-    PCMSK2 |= (1 << PCINT22);                                               //Set PCINT22 (digital input 6) to trigger an interrupt on state change.
-    PCMSK2 |= (1 << PCINT23);                                               //Set PCINT23 (digital input 7) to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT20);                                               //Set PCINT20 (digital input 4) to trigger an interupt on state change.
+    PCMSK2 |= (1 << PCINT21);                                               //Set PCINT21 (digital input 5) to trigger an interupt on state change.
+    PCMSK2 |= (1 << PCINT22);                                               //Set PCINT22 (digital input 6) to trigger an interupt on state change.
+    PCMSK2 |= (1 << PCINT23);                                               //Set PCINT23 (digital input 7) to trigger an interupt on state change.
   } else if (board_type == 1) {
-    PCMSK2 |= (1 << PCINT18);                                               //Set PCINT18 (digital input 2) to trigger an interrupt on state change.
-    PCMSK2 |= (1 << PCINT19);                                               //Set PCINT19 (digital input 3) to trigger an interrupt on state change.
-    PCMSK2 |= (1 << PCINT20);                                               //Set PCINT20 (digital input 4) to trigger an interrupt on state change.
-    PCMSK2 |= (1 << PCINT21);                                               //Set PCINT21 (digital input 5) to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT18);                                               //Set PCINT18 (digital input 2) to trigger an interupt on state change.
+    PCMSK2 |= (1 << PCINT19);                                               //Set PCINT19 (digital input 3) to trigger an interupt on state change.
+    PCMSK2 |= (1 << PCINT20);                                               //Set PCINT20 (digital input 4) to trigger an interupt on state change.
+    PCMSK2 |= (1 << PCINT21);                                               //Set PCINT21 (digital input 5) to trigger an interupt on state change.
   }
 
   //Wait until the receiver is active and the throttle is set to the lower position.

@@ -4,7 +4,7 @@
 void calibrate_barometer() {
   //Setup the bmp280 chip
   Serial.println("Start BMP"); 
-  bmp.begin();                                     //Begin connection with the BMP280 chip
+  bmp.begin(bmp_address);                                     //Begin connection with the BMP280 chip
   //Configure the BMP280 sampling settings.  This will only be used to calculate the calibration values.
   bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     // Operating Mode. 
                   Adafruit_BMP280::SAMPLING_X2,     // Temp. oversampling 
