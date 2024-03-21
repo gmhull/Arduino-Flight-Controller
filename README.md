@@ -1,18 +1,9 @@
 # Arduino Flight Controller
 This arduino flight controller project was inspired by Joop Brokking's auto-leveling quadcopter build.  My goal was to build this drone from scratch and then use an arduino as a controller instead of using an existing flight controller board.  The body of the drone was designed and 3D printed by me, I custom built a circuit board to connect all electronics, and I built out this flight controller to get everything working together.  
 
-<p align="center">
-    <img src="./Imgs/Arms Open.jpg" width="300" height="auto" alt="Drone v1">
-    <img src="./Imgs/Arms Closed.jpg" width="300" height="auto" alt="Drone v1">
-    <img src="./Imgs/Electronics Closeup.jpg" width="300" height="auto" alt="Drone v1">
-    <br>
-    <i>Drone v2</i>
-</p>
-
 # Iterations
+## Version 1 ##
 The project has gone through a few iterations.  Version 1 was made using an Arduino Uno board at the core.  This was a quick build designed to get something into the air for the first time.  The body was a rough design and had a lot of flaws that made it harder to work with.  These were dealt with in the next iteration of the drone.
-
-The main upgrade for version 2 was a redesign of the drone body.  My friend got a DJI mini drone with foldable arms for storage and I wanted to try the same thing with this project.  I replaced the fixed arms with arms that all swiveled into the body.  Secondly, I created a complete bottom half of the drone so that the battery was no longer exposed.  There were a handful of small electronics adjustments as well.  In order to save space on the inside, I swapped out the Arduino Uno for an Arduino Nano to save space.  I also added a power switch onto the outside of the drone to make turning the motors on and off easier and safer.  Finally, I added a magnetic cover to the drone so that I could easily remove the top case to access electronics.
 
 <p align="center">
     <img src="./Imgs/Drone v1.jpg" width="600" height="auto" alt="Drone v1">
@@ -20,9 +11,23 @@ The main upgrade for version 2 was a redesign of the drone body.  My friend got 
     <i>Drone v1</i>
 </p>
 
+## Version 2 ##
+The main upgrade for version 2 was a redesign of the drone body.  My friend got a DJI mini drone with foldable arms for storage and I wanted to try the same thing with this project.  I replaced the fixed arms with arms that all swiveled into the body.  Secondly, I created a complete bottom half of the drone so that the battery was no longer exposed.  There were a handful of small electronics adjustments as well.  In order to save space on the inside, I swapped out the Arduino Uno for an Arduino Nano to save space.  I also added a power switch onto the outside of the drone to make turning the motors on and off easier and safer.  Finally, I added a magnetic cover to the drone so that I could easily remove the top case to access electronics.
+
+<p align="center">
+    <img src="./Imgs/Arms Open.jpg" width="300" height="auto" alt="Drone v2">
+    <img src="./Imgs/Arms Closed.jpg" width="300" height="auto" alt="Drone v2">
+    <img src="./Imgs/Electronics Closeup.jpg" width="300" height="auto" alt="Drone v2">
+    <br>
+    <i>Drone v2</i>
+</p>
+
+## Version 3 ##
+I am currently working on a 3rd version of the drone.  This time, I am going back to a fixed arm setup after having stability issues.  The flight controller will still be Arduino based, but I designed a custom circuit board using EagleCAD to produce a slim design.  Tune in for future updates.
+
 # BOM
 Parts for this project included:
-- Arduino Uno
+- Arduino Nano
 - MPU6050 Accelerometer/Gyro Chip
 - BMP280 Barometer Chip
 - 4x 2300kV Brushless Motors
