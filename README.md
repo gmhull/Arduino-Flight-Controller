@@ -49,7 +49,8 @@ Parts for this project included:
 Here is a wiring diagram of the build:
 
 <p align="center">
-    <img src="./Imgs/Wiring%20Schematic.png" width="600" height="auto" alt="Wiring Schematic">
+    <img src="./Imgs/Wiring%20Schematic%202.png" width="600" height="auto" alt="Wiring Schematic">
+    <img src="./Imgs/Custom%20Circuit%20Board.png" width="600" height="auto" alt="Circuit Board">
     <br>
     <i>Wiring Schematic</i>
 </p>
