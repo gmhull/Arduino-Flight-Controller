@@ -26,7 +26,7 @@ The main upgrade for version 2 was a redesign of the drone body.  My friend got 
 I am currently working on a 3rd version of the drone.  This time, I am going back to a fixed arm setup after having stability issues.  The flight controller will still be Arduino based, but I designed a custom circuit board using EagleCAD to produce a slim design.  Tune in for future updates.
 
 # BOM
-Parts for this project included:
+Parts for version 2 included:
 - Arduino Nano
 - MPU6050 Accelerometer/Gyro Chip
 - BMP280 Barometer Chip
@@ -49,8 +49,8 @@ Parts for this project included:
 Here is a wiring diagram of the build:
 
 <p align="center">
-    <img src="./Imgs/Wiring%20Schematic%202.png" width="600" height="auto" alt="Wiring Schematic">
-    <img src="./Imgs/Custom%20Circuit%20Board.png" width="600" height="auto" alt="Circuit Board">
+    <img src="./Imgs/Wiring%20Schematic%202.png" width="300" height="auto" alt="Wiring Schematic">
+    <img src="./Imgs/Custom%20Circuit%20Board.png" width="300" height="auto" alt="Circuit Board">
     <br>
     <i>Wiring Schematic</i>
 </p>
