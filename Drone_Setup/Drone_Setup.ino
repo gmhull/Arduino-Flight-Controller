@@ -46,19 +46,21 @@ void setup(){
   pinMode(12, OUTPUT);
   //Arduino (Atmega) pins default to inputs, so they don't need to be explicitly declared as inputs
   PCICR |= (1 << PCIE2);    // set PCIE0 to enable PCMSK2 scan
-  if (board_type == 0){
-    PCMSK2 |= (1 << PCINT20); //Set PCINT20 (digital input 4) to trigger an interrupt on state change.
-    PCMSK2 |= (1 << PCINT21); //Set PCINT21 (digital input 5)to trigger an interrupt on state change.
-    PCMSK2 |= (1 << PCINT22); //Set PCINT22 (digital input 6)to trigger an interrupt on state change.
-    PCMSK2 |= (1 << PCINT23); //Set PCINT23 (digital input 7)to trigger an interrupt on state change.
-  } else {
-    PCMSK2 |= (1 << PCINT18); //Set PCINT18 (digital input 2)to trigger an interrupt on state change.
-    PCMSK2 |= (1 << PCINT19); //Set PCINT19 (digital input 3)to trigger an interrupt on state change.
-    PCMSK2 |= (1 << PCINT20); //Set PCINT20 (digital input 4) to trigger an interrupt on state change.
-    PCMSK2 |= (1 << PCINT21); //Set PCINT21 (digital input 5)to trigger an interrupt on state change.
+  if (board_type == 0){       // Using an Arduino Uno board
+    PCMSK2 |= (1 << PCINT20); // Set PCINT20 (digital input 4) to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT21); // Set PCINT21 (digital input 5)to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT22); // Set PCINT22 (digital input 6)to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT23); // Set PCINT23 (digital input 7)to trigger an interrupt on state change.
+    LED_PIN = 12;             // Set LED pin based on the board type
+  } else {                    // Using an Arduino Uno board
+    PCMSK2 |= (1 << PCINT18); // Set PCINT18 (digital input 2)to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT19); // Set PCINT19 (digital input 3)to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT20); // Set PCINT20 (digital input 4) to trigger an interrupt on state change.
+    PCMSK2 |= (1 << PCINT21); // Set PCINT21 (digital input 5)to trigger an interrupt on state change.
+    LED_PIN = 13;             // Set LED pin based on the board type
   }
-  Wire.begin();             //Start the I2C as master
-  delay(250);               //Give the gyro time to start 
+  Wire.begin();               // Start the I2C as master
+  delay(250);                 // Give the gyro time to start 
 }
 //Main program
 void loop(){
@@ -391,11 +393,11 @@ void loop(){
     Serial.println(F("==================================================="));
     Serial.println(F("LED test"));
     Serial.println(F("==================================================="));
-    digitalWrite(12, HIGH);
+    digitalWrite(LED_PIN, HIGH);
     Serial.println(F("The LED should now be lit"));
     Serial.println(F("Move stick 'nose up' and back to center to continue"));
     check_to_continue();
-    digitalWrite(12, LOW);
+    digitalWrite(LED_PIN, LOW);
   }
   
   Serial.println(F(""));
@@ -940,4 +942,5 @@ void intro(){
   Serial.println(F("For support and questions: www.brokking.net"));
   Serial.println(F(""));
   Serial.println(F("Have fun!"));
+  Serial.println(F("Modified by Garth"));
 }
