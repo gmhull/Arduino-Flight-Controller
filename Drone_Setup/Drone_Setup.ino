@@ -52,7 +52,7 @@ void setup(){
     PCMSK2 |= (1 << PCINT22); // Set PCINT22 (digital input 6)to trigger an interrupt on state change.
     PCMSK2 |= (1 << PCINT23); // Set PCINT23 (digital input 7)to trigger an interrupt on state change.
     LED_PIN = 12;             // Set LED pin based on the board type
-  } else {                    // Using an Arduino Uno board
+  } else {                    // Using an Arduino Nano board
     PCMSK2 |= (1 << PCINT18); // Set PCINT18 (digital input 2)to trigger an interrupt on state change.
     PCMSK2 |= (1 << PCINT19); // Set PCINT19 (digital input 3)to trigger an interrupt on state change.
     PCMSK2 |= (1 << PCINT20); // Set PCINT20 (digital input 4) to trigger an interrupt on state change.
