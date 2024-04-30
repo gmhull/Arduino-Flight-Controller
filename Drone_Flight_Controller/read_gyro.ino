@@ -89,7 +89,7 @@ void set_gyro_registers(){
 void calibrate_gyro(void) {
   //Lets take multiple gyro data samples so we can determine the average gyro offset (calibration).
   for (cal_int = 0; cal_int < 2000 ; cal_int ++){                         //Take 2000 readings for calibration.
-    if(cal_int % 15 == 0)digitalWrite(LED_PIN, !digitalRead(LED_PIN));    //Change the led status to indicate calibration.
+    if(cal_int % 15 == 0)digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));    //Change the led status to indicate calibration.
     gyro_signalen();                                                      //Read the gyro output.
     gyro_axis_cal[1] += gyro_axis[1];                                     //Add pitch value to gyro_roll_cal.
     gyro_axis_cal[2] += gyro_axis[2];                                     //Add roll value to gyro_pitch_cal.

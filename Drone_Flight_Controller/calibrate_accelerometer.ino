@@ -5,9 +5,10 @@ void calibrate_accelerometer() {
   //Calculate the pitch and roll calibration values when resting on a flat surface.
   //Or you can find these by running the ESC_Calibrate file and enter manually.
   bool manual_entry = false;
+  int acc_cal_counter = 100;
 
   if (!manual_entry) {
-    for (int i=0; i < 20; i++) {
+    for (int i=0; i < acc_cal_counter; i++) {
       angle_pitch += gyro_pitch * 0.0000611;                                    //Calculate the traveled pitch angle and add this to the angle_pitch variable.
       angle_roll += gyro_roll * 0.0000611;                                      //Calculate the traveled roll angle and add this to the angle_roll variable.
     
@@ -31,17 +32,17 @@ void calibrate_accelerometer() {
       angle_pitch = angle_pitch * 0.9996 + angle_pitch_acc * 0.0004;            //Correct the drift of the gyro pitch angle with the accelerometer pitch angle.
       angle_roll = angle_roll * 0.9996 + angle_roll_acc * 0.0004;               //Correct the drift of the gyro roll angle with the accelerometer roll angle.
     }
-    angle_pitch_acc_offset /= 20;                                               //Divide the sum by the amount of loops run
-    angle_roll_acc_offset /= 20;                                                //Divide the sum by the amount of loops run
+    angle_pitch_acc_offset /= acc_cal_counter;                                               //Divide the sum by the amount of loops run
+    angle_roll_acc_offset /= acc_cal_counter;                                                //Divide the sum by the amount of loops run
   } 
   if (manual_entry) {
     angle_pitch_acc_offset = 1.94;
     angle_roll_acc_offset = 0.85;
   }
   
-//  Serial.print("Angle Pitch Acc Offset: ");
-//  Serial.println(angle_pitch_acc_offset);
-//  Serial.print("Angle Roll Acc Offset: ");
-//  Serial.println(angle_roll_acc_offset);
+ Serial.print("Angle Pitch Acc Offset: ");
+ Serial.println(angle_pitch_acc_offset);
+ Serial.print("Angle Roll Acc Offset: ");
+ Serial.println(angle_roll_acc_offset);
 
 }

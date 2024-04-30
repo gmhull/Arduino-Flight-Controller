@@ -60,7 +60,6 @@ float roll_level_adjust, pitch_level_adjust;
 double gyro_axis_cal[4], acc_axis_cal[4];
 long signal_center = 500;
 long throttle_signal_center = 400;
-int LED_PIN;
 
 
 long acc_x, acc_y, acc_z, acc_total_vector;
@@ -123,13 +122,7 @@ void setup() {
   //Arduino (Atmega) pins default to inputs, so they don't need to be explicitly declared as inputs.
   DDRB |= B00111111;                                                        //Configure digital port 8, 9, 10, 11, 12, and 13 as output.
 
-  //Use the led on the Arduino for startup indication.
-  if (board_type == 0) {
-    LED_PIN = 12;                                                           //Default LED pin for Arduino Uno
-  } else if (board_type == 1) {
-    LED_PIN = 13;                                                           //Default LED pin for Arduino Nano
-  }
-  digitalWrite(LED_PIN, HIGH);                                              //Turn on the warning led.
+  digitalWrite(LED_BUILTIN, HIGH);                                              //Turn on the warning led.
 
   //Check the EEPROM signature to make sure that the setup program is executed.
   while (eeprom_data[33] != 'G' || eeprom_data[34] != 'H' || eeprom_data[35] != 'M')delay(10);
@@ -183,7 +176,7 @@ void setup() {
     PORTB &= B11110000;                                                     //Set digital port 8, 9, 10 and 11 low.
     delay(3);                                                               //Wait 3 milliseconds before the next loop.
     if (start == 125) {                                                     //Every 125 loops (500ms).
-      digitalWrite(LED_PIN, !digitalRead(LED_PIN));                         //Change the led status.
+      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));                         //Change the led status.
       start = 0;                                                            //Start again at 0.
     }
   }
@@ -201,7 +194,7 @@ void setup() {
   loop_timer = micros();                                                    //Set the timer for the next loop.
 
   //When everything is done, turn off the led.
-  digitalWrite(LED_PIN, LOW);                                               //Turn off the warning led.
+  digitalWrite(LED_BUILTIN, LOW);                                           //Turn off the warning led.
 
   Serial.println("Ready to fly");
 }
@@ -211,7 +204,7 @@ void setup() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void loop() {
   //Turn off the LED light
-  digitalWrite(LED_PIN, LOW);
+  digitalWrite(LED_BUILTIN, LOW);
 
 //  if(loop_counter == 0)Serial.print("Angle Pitch: ");
 //  if(loop_counter == 1)Serial.print(angle_pitch);
@@ -342,7 +335,7 @@ void loop() {
   battery_voltage = battery_voltage * 0.92 + (analogRead(0) + 65) * 0.09853;
 
   //Turn on the led if battery voltage is to low.
-  if (battery_voltage < 1000 && battery_voltage > 600)digitalWrite(LED_PIN, HIGH);
+  if (battery_voltage < 1000 && battery_voltage > 600)digitalWrite(LED_BUILTIN, HIGH);
 
   if (flight_status >= 2) {                                                 //Active when the motors are started.
     //The throttle variable is calculated in the following part. It forms the base throttle for every motor.
@@ -389,7 +382,7 @@ void loop() {
   //that the loop time is still 4000us and no longer.
   //! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 
-  if (micros() - loop_timer > 4050)digitalWrite(LED_PIN, HIGH);             //Turn on the LED if the loop time exceeds 4050us.
+  if (micros() - loop_timer > 4050)digitalWrite(LED_BUILTIN, HIGH);             //Turn on the LED if the loop time exceeds 4050us.
   //  Serial.println(micros() - loop_timer);
 
   //All the information for controlling the motor's is available.
