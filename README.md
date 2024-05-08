@@ -1,6 +1,9 @@
 # Arduino Flight Controller
 This arduino flight controller project was inspired by Joop Brokking's auto-leveling quadcopter build.  My goal was to build this drone from scratch and then use an arduino as a controller instead of using an existing flight controller board.  The body of the drone was designed and 3D printed by me, I custom built a circuit board to connect all electronics, and I built out this flight controller to get everything working together.  
 
+## Custom Software Library ##
+In order to speed up the barometer call and response time, I forked the <a href="https://github.com/adafruit/Adafruit_BMP280_Library">Adafruit BMP280</a> library.  You can check out my modified version of the library <a href="https://github.com/gmhull/Adafruit_BMP280_Library_Modified">here</a>.
+
 # Iterations
 ## Version 1 ##
 The project has gone through a few iterations.  Version 1 was made using an Arduino Uno board at the core.  This was a quick build designed to get something into the air for the first time.  The body was a rough design and had a lot of flaws that made it harder to work with.  These were dealt with in the next iteration of the drone.
@@ -71,7 +74,7 @@ Be careful when performing these steps.  Use appropriate safety gear.
 2. D Gain:
   A. Increase the D gain in increments of 1 until the drone starts getting restless in the air.
   B. Lower until the drone flies steady.
-  C. Take off 25% to get hte final value.
+  C. Take off 25% to get the final value.
 3. P Gain: 
   A. Increase the P gain in increments of 0.01 until the drone starts oscillating slowly.
   B. Decrease by 50% to get the final value.
