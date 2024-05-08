@@ -72,18 +72,18 @@ This is the process that I used to tune the PID controller for auto leveling the
 Be careful when performing these steps.  Use appropriate safety gear. 
 1. Set P gain to 1 and I/D to 0.  Check to make sure that the drone moves in the correct directions when the sticks are moved.
 2. D Gain:
-  A. Increase the D gain in increments of 1 until the drone starts getting restless in the air.
-  B. Lower until the drone flies steady.
-  C. Take off 25% to get the final value.
-3. P Gain: 
-  A. Increase the P gain in increments of 0.01 until the drone starts oscillating slowly.
-  B. Decrease by 50% to get the final value.
+    * Increase the D gain in increments of 1 until the drone starts getting restless in the air.
+    * Lower until the drone flies steady.
+    * Take off 25% to get the final value.
+3. P Gain:
+    * Increase the P gain in increments of 0.01 until the drone starts oscillating slowly.
+    * Decrease by 50% to get the final value.
 4. I Gain:
-  A. Increase the I gain in increments of 0.2 until the drone starts overcompensating.
-  B. Decrease by 50% to get the final value.
+    * Increase the I gain in increments of 0.2 until the drone starts overcompensating.
+    * Decrease by 50% to get the final value.
 5. P Gain Again: 
-  A. Increase the P gain until it starts oscillating.
-  B. Take off a few points.
+    * Increase the P gain until it starts oscillating.
+    * Take off a few points.
 6. Optimize the values with trial and error.
 
 This was a slow process to get values that worked well for me.
