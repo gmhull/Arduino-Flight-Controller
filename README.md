@@ -52,8 +52,8 @@ Parts for version 2 included:
 Here is a wiring diagram of the build:
 
 <p align="center">
-    <img src="./Imgs/Wiring%20Schematic%202.png" width="300" height="auto" alt="Wiring Schematic">
-    <img src="./Imgs/Custom%20Circuit%20Board.png" width="300" height="auto" alt="Circuit Board">
+    <img src="./Imgs/Wiring%20Schematic%202.png" width="auto" height="300" alt="Wiring Schematic">
+    <img src="./Imgs/Custom%20Circuit%20Board.png" width="auto" height="300" alt="Circuit Board">
     <br>
     <i>Wiring Schematic</i>
 </p>
