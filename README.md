@@ -76,10 +76,10 @@ Be careful when performing these steps.  Use appropriate safety gear.
     * Lower until the drone flies steady.
     * Take off 25% to get the final value.
 3. P Gain:
-    * Increase the P gain in increments of 0.01 until the drone starts oscillating slowly.
+    * Increase the P gain in increments of 0.2 until the drone starts oscillating slowly.
     * Decrease by 50% to get the final value.
 4. I Gain:
-    * Increase the I gain in increments of 0.2 until the drone starts overcompensating.
+    * Increase the I gain in increments of 0.01 until the drone starts overcompensating.
     * Decrease by 50% to get the final value.
 5. P Gain Again: 
     * Increase the P gain until it starts oscillating.
